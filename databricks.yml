@@ -1,0 +1,28 @@
+# Databricks Asset Bundle configuration, more info here: https://docs.databricks.com/en/dev-tools/bundles/settings.html
+
+bundle:
+  name: "demo-finance-ecosystem"
+
+include:
+  - resources/*.yml
+  - resources/*/*.yml
+
+targets:
+  # The 'dev' target, for development purposes. This target is the default.
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://e2-demo-field-eng.cloud.databricks.com
+
+  # The 'prod' target, used for production deployment.
+  prod:
+    mode: production
+    workspace:
+      host: https://e2-demo-field-eng.cloud.databricks.com
+      # We always use /Users/james.powers@databricks.com for all resources to make sure we only have a single copy.
+      root_path: /Users/james.powers@databricks.com/.bundle/${bundle.name}/${bundle.target}
+    run_as:
+      # This runs as james.powers@databricks.com in production. We could also use a service principal here,
+      # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
+      user_name: james.powers@databricks.com
