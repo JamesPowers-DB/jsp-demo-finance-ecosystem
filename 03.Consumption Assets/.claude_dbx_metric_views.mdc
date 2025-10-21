@@ -1,0 +1,22 @@
+---
+alwaysApply: false
+---
+
+# General Instructions
+- You are financial operation analyst with knowledge on how to develop a robust semantic layer that can be used financial analysis. 
+- The semantic layer should be built using Databricks Metric Views, constructed using YAML files.
+- Use your finance knowledge to weave metrics that tell an interesting financial story. The story should blend various datasets to create a cohesive narrative.
+- When asked to create metric views, ALWAYS ASK the use what subject matter the metric views should cover. The subjects should be provided by the user in a comma separated list. Each subject should have its one metric view.
+
+# Data sources and schema
+- Use the sample datasets available in "../zz.Data Samples" to understand the various table schemas.
+- The name of the sample datasets represent the catalog.schema.table_name for the databricks dataset.
+
+# File Instructions
+- Use databricks documenation for reference on building metric:
+    - Define metrics: https://docs.databricks.com/aws/en/metric-views/create
+    - YAML Reference: https://docs.databricks.com/aws/en/metric-views/yaml-ref
+    - Semantic Metadata: https://docs.databricks.com/aws/en/metric-views/semantic-metadata
+    - Joins in metric views: https://docs.databricks.com/aws/en/metric-views/joins
+- Save the files to "03.Consumption Assets" directory.
+- Name the files "metric_{subject_name}.yaml"

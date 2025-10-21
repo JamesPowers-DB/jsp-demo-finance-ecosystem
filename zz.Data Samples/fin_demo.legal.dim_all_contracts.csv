@@ -1,0 +1,101 @@
+contract_id,contract_number,third_party_id,third_party_name,agreement_type,contract_type,contract_description,contract_currency,total_contract_value,contract_start_date,estimated_completion_date,contract_status,legal_entity_id,legal_entity_name,payment_terms
+30000000,OUT000000,10000261,Kennedy & Santana Group,Outbound,Cost-Plus,Custom manufacturing services,USD,1551775.23,2023-06-08,2024-01-18,Completed,100004,International Holdings Ltd,Net-45
+30000001,OUT000001,10000196,American Bank Co,Outbound,Fixed-Price,Infrastructure upgrade and installation project,USD,1670886.57,2023-02-28,2023-05-20,Completed,100004,International Holdings Ltd,Net-60
+30000002,OUT000002,10000113,Lee-Davis Supplier Corporation,Outbound,Fixed-Price,Construction and delivery of commercial building project,USD,693208.65,2024-06-04,2024-09-24,Completed,100004,International Holdings Ltd,Net-30
+30000003,OUT000003,10000073,Teresaburgh Benefits Provider Corp,Outbound,Time-and-Materials,Ongoing consulting and advisory services,USD,725910.35,2025-06-30,2027-03-05,Active,100002,Global Industries Inc,Net-60
+30000004,OUT000004,10000246,Fisher Benefits Provider Associates,Outbound,Cost-Plus,Complex engineering project with variable scope,USD,1091686.56,2025-08-15,2026-06-08,Active,100004,International Holdings Ltd,Net-60
+30000005,OUT000005,10000133,Global Credit Services,Outbound,Cost-Plus,Research and development project,USD,1330960.68,2024-04-13,2025-04-01,Completed,100002,Global Industries Inc,Net-30
+30000006,OUT000006,10000252,American Leasing Services,Outbound,Fixed-Price,Product manufacturing and delivery contract,USD,1114940.61,2024-06-02,2025-03-30,Completed,100003,TechVentures LLC,Net-30
+30000007,OUT000007,10000119,Global Insurance Inc,Outbound,Time-and-Materials,Ongoing consulting and advisory services,USD,833744.42,2024-03-24,2025-10-31,Active,100002,Global Industries Inc,Net-60
+30000008,OUT000008,10000181,Cassandramouth Auditing Company,Outbound,Cost-Plus,Custom manufacturing services,USD,717083.64,2025-06-18,2025-12-02,Active,100005,Enterprise Solutions Group,Net-30
+30000009,OUT000009,10000115,American Vendor Associates,Outbound,Cost-Plus,Long-term service delivery contract,USD,882021.31,2024-12-04,2026-10-14,Active,100002,Global Industries Inc,Net-60
+30000010,OUT000010,10000284,American Credit Corp,Outbound,Fixed-Price,Software development and implementation services,USD,1303606.31,2025-04-29,2026-03-08,Active,100003,TechVentures LLC,Net-45
+30000011,OUT000011,10000291,Contreras & Travis Solutions,Outbound,Cost-Plus,Research and development project,USD,983408.46,2024-12-23,2026-04-04,Active,100002,Global Industries Inc,Net-30
+30000012,OUT000012,10000213,Lee Auditing,Outbound,Cost-Plus,Custom manufacturing services,USD,683175.85,2024-01-14,2025-10-01,Completed,100002,Global Industries Inc,Net-60
+30000013,OUT000013,10000037,Jackson & Daniel Solutions,Outbound,Time-and-Materials,IT support and maintenance services,USD,3073558.13,2025-03-26,2025-06-04,Completed,100005,Enterprise Solutions Group,Net-45
+30000014,OUT000014,10000276,American Legal Services Services,Outbound,Time-and-Materials,IT support and maintenance services,USD,1829981.25,2025-06-24,2026-09-13,On-Hold,100003,TechVentures LLC,Net-60
+30000015,OUT000015,10000122,Herrera & Taylor Corp,Outbound,Fixed-Price,Product manufacturing and delivery contract,USD,2762009.56,2023-01-26,2023-08-27,Completed,100002,Global Industries Inc,Net-60
+30000016,OUT000016,10000246,Fisher Benefits Provider Associates,Outbound,Time-and-Materials,Ongoing consulting and advisory services,USD,748363.96,2024-12-19,2025-05-08,Completed,100002,Global Industries Inc,Net-45
+30000017,OUT000017,10000204,Global Consulting Inc,Outbound,Time-and-Materials,IT support and maintenance services,USD,888139.25,2025-04-20,2026-01-08,Active,100002,Global Industries Inc,Net-60
+30000018,OUT000018,10000038,American Consulting Advisors,Outbound,Time-and-Materials,Professional services engagement,USD,889496.29,2024-06-05,2025-08-18,Completed,100003,TechVentures LLC,Net-60
+30000019,OUT000019,10000066,American Vendor Solutions,Outbound,Fixed-Price,Infrastructure upgrade and installation project,USD,1189823.94,2025-10-04,2026-08-01,Active,100005,Enterprise Solutions Group,Net-60
+30000020,OUT000020,10000006,American Bank Inc,Outbound,Time-and-Materials,IT support and maintenance services,USD,1240884.74,2024-06-07,2024-11-02,Completed,100005,Enterprise Solutions Group,Net-45
+30000021,OUT000021,10000100,Holmes & Martinez Services,Outbound,Fixed-Price,Software development and implementation services,USD,1087342.95,2025-04-05,2026-11-07,Active,100001,Acme Corporation,Net-60
+30000022,OUT000022,10000032,West Supplier Advisors,Outbound,Cost-Plus,Complex engineering project with variable scope,USD,857018.89,2025-05-18,2025-10-22,Active,100005,Enterprise Solutions Group,Net-45
+30000023,OUT000023,10000245,Spencer Bank,Outbound,Cost-Plus,Long-term service delivery contract,USD,842141.75,2023-05-11,2023-12-23,Completed,100001,Acme Corporation,Net-45
+30000024,OUT000024,10000105,Robinson & Jones LLC,Outbound,Cost-Plus,Complex engineering project with variable scope,USD,1168587.61,2024-02-20,2025-10-03,Completed,100002,Global Industries Inc,Net-30
+30000025,OUT000025,10000206,Kimberlychester Credit Company,Outbound,Cost-Plus,Custom manufacturing services,USD,1354510.59,2024-04-21,2025-08-16,Completed,100004,International Holdings Ltd,Net-45
+30000026,OUT000026,10000006,American Bank Inc,Outbound,Cost-Plus,Research and development project,USD,707234.31,2024-06-11,2026-05-21,Active,100002,Global Industries Inc,Net-45
+30000027,OUT000027,10000180,Newton & Moore Inc,Outbound,Cost-Plus,Custom manufacturing services,USD,854119.71,2025-04-05,2025-11-24,Active,100002,Global Industries Inc,Net-30
+30000028,OUT000028,10000240,Martinez Investment,Outbound,Time-and-Materials,Engineering and design services,USD,952492.66,2024-10-06,2026-06-17,Active,100003,TechVentures LLC,Net-60
+30000029,OUT000029,10000297,Merritt-Manning Auditing Corporation,Outbound,Cost-Plus,Custom manufacturing services,USD,1448067.58,2025-07-03,2025-11-19,Active,100002,Global Industries Inc,Net-30
+30000030,OUT000030,10000116,Owens & Daniel Group,Outbound,Time-and-Materials,IT support and maintenance services,USD,689963.69,2023-09-13,2024-02-14,Completed,100004,International Holdings Ltd,Net-45
+30000031,OUT000031,10000171,American Consulting Inc,Outbound,Cost-Plus,Long-term service delivery contract,USD,1218790.13,2025-08-30,2026-12-26,Active,100004,International Holdings Ltd,Net-60
+30000032,OUT000032,10000289,American Vendor Inc,Outbound,Fixed-Price,Software development and implementation services,USD,1652060.72,2024-05-01,2025-09-03,Completed,100001,Acme Corporation,Net-45
+30000033,OUT000033,10000223,Global Bank Group,Outbound,Time-and-Materials,Professional services engagement,USD,1286000.05,2023-10-09,2025-01-31,Completed,100004,International Holdings Ltd,Net-30
+30000034,OUT000034,10000001,Figueroa Credit Group,Outbound,Cost-Plus,Custom manufacturing services,USD,705069.68,2023-06-04,2024-02-25,Completed,100005,Enterprise Solutions Group,Net-45
+30000035,OUT000035,10000032,West Supplier Advisors,Outbound,Time-and-Materials,IT support and maintenance services,USD,871445.04,2024-04-22,2025-07-21,Completed,100001,Acme Corporation,Net-30
+30000036,OUT000036,10000064,Port Benefits Provider Advisors,Outbound,Cost-Plus,Complex engineering project with variable scope,USD,675491.33,2025-06-20,2027-03-01,Active,100004,International Holdings Ltd,Net-30
+30000037,OUT000037,10000144,Global Payroll Services Partners,Outbound,Cost-Plus,Custom manufacturing services,USD,1668856.98,2024-07-13,2026-04-21,Active,100001,Acme Corporation,Net-45
+30000038,OUT000038,10000123,American Tax Services Solutions,Outbound,Time-and-Materials,IT support and maintenance services,USD,876031.75,2024-11-26,2026-02-13,Active,100003,TechVentures LLC,Net-45
+30000039,OUT000039,10000203,Hancock Consulting Corp,Outbound,Time-and-Materials,Engineering and design services,USD,1211692.87,2024-11-09,2025-01-05,Completed,100003,TechVentures LLC,Net-30
+30000040,OUT000040,10000005,Global Insurance Financial,Outbound,Fixed-Price,Product manufacturing and delivery contract,USD,814983.39,2023-12-02,2024-08-04,Completed,100002,Global Industries Inc,Net-45
+30000041,OUT000041,10000153,"Calhoun, Payroll Services Corporation",Outbound,Time-and-Materials,Engineering and design services,USD,1688958.93,2025-05-01,2026-08-05,Active,100001,Acme Corporation,Net-30
+30000042,OUT000042,10000231,Jessicamouth Payroll Services Advisors,Outbound,Time-and-Materials,Ongoing consulting and advisory services,USD,789618.22,2023-03-12,2025-02-06,Completed,100003,TechVentures LLC,Net-30
+30000043,OUT000043,10000124,White & Ford Co,Outbound,Cost-Plus,Research and development project,USD,744346.95,2023-05-10,2024-10-05,Completed,100003,TechVentures LLC,Net-60
+30000044,OUT000044,10000220,Bell Credit,Outbound,Cost-Plus,Research and development project,USD,812122.67,2024-01-13,2024-08-01,Completed,100001,Acme Corporation,Net-60
+30000045,OUT000045,10000024,Herrerafurt Investment Corporation,Outbound,Fixed-Price,Infrastructure upgrade and installation project,USD,1186234.66,2025-08-09,2026-07-24,Active,100005,Enterprise Solutions Group,Net-45
+30000046,OUT000046,10000084,Johnbury Payroll Services Co,Outbound,Cost-Plus,Complex engineering project with variable scope,USD,1457388.57,2024-10-04,2025-07-09,Completed,100003,TechVentures LLC,Net-30
+30000047,OUT000047,10000263,Lake Supplier Group,Outbound,Cost-Plus,Complex engineering project with variable scope,USD,1844092.88,2023-12-22,2025-07-19,Completed,100003,TechVentures LLC,Net-45
+30000048,OUT000048,10000242,Estrada Legal Services,Outbound,Fixed-Price,Infrastructure upgrade and installation project,USD,2357020,2025-04-22,2026-10-05,Active,100005,Enterprise Solutions Group,Net-45
+30000049,OUT000049,10000206,Kimberlychester Credit Company,Outbound,Cost-Plus,Long-term service delivery contract,USD,1090109.49,2024-10-28,2025-08-30,Completed,100002,Global Industries Inc,Net-60
+30000050,OUT000050,10000026,Calderon-Montgomery Leasing Corporation,Outbound,Time-and-Materials,Engineering and design services,USD,864076.86,2023-09-09,2024-01-05,Completed,100004,International Holdings Ltd,Net-45
+30000051,OUT000051,10000005,Global Insurance Financial,Outbound,Cost-Plus,Complex engineering project with variable scope,USD,1390959.31,2023-12-11,2024-02-08,Completed,100004,International Holdings Ltd,Net-45
+30000052,OUT000052,10000220,Bell Credit,Outbound,Time-and-Materials,Ongoing consulting and advisory services,USD,879754.44,2025-06-20,2027-03-22,Active,100005,Enterprise Solutions Group,Net-45
+30000053,OUT000053,10000103,Chapman & Hall Company,Outbound,Fixed-Price,Infrastructure upgrade and installation project,USD,1557927.59,2024-05-15,2026-01-03,Active,100003,TechVentures LLC,Net-60
+30000054,OUT000054,10000123,American Tax Services Solutions,Outbound,Fixed-Price,Software development and implementation services,USD,711520.77,2023-08-15,2024-11-01,Completed,100001,Acme Corporation,Net-60
+30000055,OUT000055,10000107,Chadbury Legal Services Associates,Outbound,Time-and-Materials,Professional services engagement,USD,1141152.17,2023-12-19,2025-03-28,Completed,100005,Enterprise Solutions Group,Net-60
+30000056,OUT000056,10000005,Global Insurance Financial,Outbound,Time-and-Materials,Ongoing consulting and advisory services,USD,808618.39,2023-05-04,2023-12-17,Completed,100005,Enterprise Solutions Group,Net-45
+30000057,OUT000057,10000208,"Rodriguez, Credit Associates",Outbound,Fixed-Price,Product manufacturing and delivery contract,USD,784344.36,2024-05-10,2025-03-19,Completed,100002,Global Industries Inc,Net-60
+30000058,OUT000058,10000174,Cherylhaven Vendor Consulting,Outbound,Time-and-Materials,IT support and maintenance services,USD,791838.79,2023-07-03,2024-06-06,Completed,100002,Global Industries Inc,Net-30
+30000059,OUT000059,10000089,Lake Tax Services Services,Outbound,Time-and-Materials,Ongoing consulting and advisory services,USD,1479151.87,2023-05-10,2025-03-23,Completed,100004,International Holdings Ltd,Net-45
+30000060,OUT000060,10000014,Santos & Gardner Consulting,Outbound,Time-and-Materials,Professional services engagement,USD,1029259.34,2023-12-15,2024-07-20,Completed,100005,Enterprise Solutions Group,Net-30
+30000061,OUT000061,10000149,Brown Consulting,Outbound,Fixed-Price,Construction and delivery of commercial building project,USD,937884.77,2023-03-17,2024-11-26,Completed,100003,TechVentures LLC,Net-60
+30000062,OUT000062,10000269,Perry-Soto Legal Services Associates,Outbound,Time-and-Materials,Engineering and design services,USD,707432.91,2023-09-12,2024-02-10,Completed,100004,International Holdings Ltd,Net-60
+30000063,OUT000063,10000006,American Bank Inc,Outbound,Fixed-Price,Product manufacturing and delivery contract,USD,1805846.73,2024-01-25,2025-05-30,Completed,100004,International Holdings Ltd,Net-45
+30000064,OUT000064,10000160,Sandoval-Cunningham Leasing Co,Outbound,Cost-Plus,Custom manufacturing services,USD,1273024.63,2024-09-16,2025-01-25,Completed,100005,Enterprise Solutions Group,Net-30
+30000065,OUT000065,10000250,Turner & Kelley Co,Outbound,Fixed-Price,Infrastructure upgrade and installation project,USD,757164.12,2023-03-18,2023-09-24,Completed,100002,Global Industries Inc,Net-30
+30000066,OUT000066,10000115,American Vendor Associates,Outbound,Time-and-Materials,Engineering and design services,USD,681579.65,2023-10-23,2024-09-06,Completed,100001,Acme Corporation,Net-60
+30000067,OUT000067,10000205,Johnson-Doyle Investment Associates,Outbound,Cost-Plus,Custom manufacturing services,USD,1207547.68,2025-04-03,2025-11-21,Active,100005,Enterprise Solutions Group,Net-60
+30000068,OUT000068,10000284,American Credit Corp,Outbound,Fixed-Price,Product manufacturing and delivery contract,USD,700421.32,2023-06-19,2024-05-28,Completed,100005,Enterprise Solutions Group,Net-60
+30000069,OUT000069,10000005,Global Insurance Financial,Outbound,Cost-Plus,Long-term service delivery contract,USD,939768.6,2023-10-06,2025-03-31,Completed,100005,Enterprise Solutions Group,Net-60
+30000070,OUT000070,10000115,American Vendor Associates,Outbound,Time-and-Materials,Ongoing consulting and advisory services,USD,1613996.99,2024-09-10,2025-06-23,Completed,100003,TechVentures LLC,Net-30
+30000071,OUT000071,10000073,Teresaburgh Benefits Provider Corp,Outbound,Cost-Plus,Research and development project,USD,4964222.81,2025-02-22,2027-02-10,Active,100004,International Holdings Ltd,Net-60
+30000072,OUT000072,10000295,"Briggs, Tax Services Inc",Outbound,Cost-Plus,Long-term service delivery contract,USD,1346216.07,2025-07-27,2026-06-06,Active,100001,Acme Corporation,Net-60
+30000073,OUT000073,10000123,American Tax Services Solutions,Outbound,Time-and-Materials,Ongoing consulting and advisory services,USD,886597.26,2023-12-08,2024-11-30,Completed,100003,TechVentures LLC,Net-60
+30000074,OUT000074,10000045,Gentry & Bradley Financial,Outbound,Cost-Plus,Research and development project,USD,1051921.95,2024-11-09,2026-01-23,Active,100001,Acme Corporation,Net-60
+30000075,OUT000075,10000245,Spencer Bank,Outbound,Time-and-Materials,Engineering and design services,USD,723738.3,2025-03-02,2026-05-19,Active,100005,Enterprise Solutions Group,Net-30
+30000076,OUT000076,10000103,Chapman & Hall Company,Outbound,Time-and-Materials,IT support and maintenance services,USD,1276635.15,2024-05-25,2026-03-26,Active,100004,International Holdings Ltd,Net-30
+30000077,OUT000077,10000019,Joshuaborough Investment Group,Outbound,Time-and-Materials,IT support and maintenance services,USD,2753200.4,2024-05-11,2024-10-12,Completed,100005,Enterprise Solutions Group,Net-30
+30000078,OUT000078,10000173,Mitchell & Kim Advisors,Outbound,Fixed-Price,Infrastructure upgrade and installation project,USD,1139075.71,2023-04-06,2023-12-22,Completed,100004,International Holdings Ltd,Net-30
+30000079,OUT000079,10000018,American Insurance Partners,Outbound,Time-and-Materials,Professional services engagement,USD,4027450.04,2023-10-26,2025-04-29,Completed,100002,Global Industries Inc,Net-60
+30000080,OUT000080,10000283,Robinson Benefits Provider,Outbound,Fixed-Price,Software development and implementation services,USD,1001371.03,2023-05-29,2024-07-24,Completed,100001,Acme Corporation,Net-30
+30000081,OUT000081,10000223,Global Bank Group,Outbound,Time-and-Materials,Professional services engagement,USD,4092334.86,2024-06-03,2025-04-02,Completed,100001,Acme Corporation,Net-30
+30000082,OUT000082,10000233,South Insurance Co,Outbound,Cost-Plus,Long-term service delivery contract,USD,62651056.09,2024-05-16,2024-11-14,Completed,100004,International Holdings Ltd,Net-45
+30000083,OUT000083,10000181,Cassandramouth Auditing Company,Outbound,Time-and-Materials,IT support and maintenance services,USD,999602.98,2023-11-26,2024-07-06,Completed,100004,International Holdings Ltd,Net-60
+30000084,OUT000084,10000205,Johnson-Doyle Investment Associates,Outbound,Fixed-Price,Software development and implementation services,USD,860585.5,2024-04-29,2025-06-23,Completed,100001,Acme Corporation,Net-45
+30000085,OUT000085,10000037,Jackson & Daniel Solutions,Outbound,Cost-Plus,Research and development project,USD,6272922.41,2023-12-06,2024-04-16,Completed,100002,Global Industries Inc,Net-45
+30000086,OUT000086,10000005,Global Insurance Financial,Outbound,Cost-Plus,Long-term service delivery contract,USD,739569.18,2025-06-10,2027-05-11,On-Hold,100003,TechVentures LLC,Net-30
+30000087,OUT000087,10000291,Contreras & Travis Solutions,Outbound,Cost-Plus,Long-term service delivery contract,USD,1463989.74,2024-10-27,2025-02-16,Completed,100005,Enterprise Solutions Group,Net-45
+30000088,OUT000088,10000186,American Investment Consulting,Outbound,Cost-Plus,Complex engineering project with variable scope,USD,683114.89,2023-03-12,2023-12-07,Completed,100001,Acme Corporation,Net-60
+30000089,OUT000089,10000017,Port Insurance LLC,Outbound,Time-and-Materials,Engineering and design services,USD,8579054.12,2025-02-17,2026-12-27,Active,100003,TechVentures LLC,Net-30
+30000090,OUT000090,10000173,Mitchell & Kim Advisors,Outbound,Fixed-Price,Product manufacturing and delivery contract,USD,865840.95,2023-02-27,2024-01-23,Completed,100003,TechVentures LLC,Net-45
+30000091,OUT000091,10000297,Merritt-Manning Auditing Corporation,Outbound,Time-and-Materials,Engineering and design services,USD,1162878.3,2025-03-22,2025-10-22,Active,100004,International Holdings Ltd,Net-30
+30000092,OUT000092,10000297,Merritt-Manning Auditing Corporation,Outbound,Cost-Plus,Research and development project,USD,738971.97,2024-04-17,2026-03-01,Active,100001,Acme Corporation,Net-45
+30000093,OUT000093,10000202,Global Auditing Inc,Outbound,Cost-Plus,Complex engineering project with variable scope,USD,1129587.49,2023-03-17,2024-07-11,Completed,100005,Enterprise Solutions Group,Net-45
+30000094,OUT000094,10000206,Kimberlychester Credit Company,Outbound,Time-and-Materials,Ongoing consulting and advisory services,USD,2313427.42,2023-07-23,2024-09-18,Completed,100005,Enterprise Solutions Group,Net-45
+30000095,OUT000095,10000252,American Leasing Services,Outbound,Cost-Plus,Long-term service delivery contract,USD,842314.92,2024-12-17,2025-11-14,Active,100005,Enterprise Solutions Group,Net-60
+30000096,OUT000096,10000252,American Leasing Services,Outbound,Cost-Plus,Complex engineering project with variable scope,USD,1658609.51,2025-05-02,2026-03-21,Active,100003,TechVentures LLC,Net-30
+30000097,OUT000097,10000103,Chapman & Hall Company,Outbound,Time-and-Materials,Ongoing consulting and advisory services,USD,1418381.68,2025-01-08,2026-12-14,Active,100004,International Holdings Ltd,Net-30
+30000098,OUT000098,10000018,American Insurance Partners,Outbound,Time-and-Materials,IT support and maintenance services,USD,1878681.3,2023-02-04,2024-10-19,Completed,100003,TechVentures LLC,Net-45
+30000099,OUT000099,10000158,New Investment Company,Outbound,Cost-Plus,Complex engineering project with variable scope,USD,953646.16,2023-07-25,2024-01-06,Completed,100005,Enterprise Solutions Group,Net-60

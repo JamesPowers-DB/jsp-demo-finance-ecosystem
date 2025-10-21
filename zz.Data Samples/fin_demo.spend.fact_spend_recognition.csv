@@ -1,0 +1,101 @@
+period_month,third_party_id,customer_name,legal_entity_id,legal_entity_name,rev_recognized_amount,rev_recognition_indicator,contract_id,contract_number,contract_amortization_value,period_transaction_count,spend_amount,spend_linear_payments,spend_nonlinear_payments
+null,10000000,Fowler Insurance,100002,Global Industries Inc,1064584.1400000004,consumption_revenue,null,null,null,701,1064584.1400000004,null,null
+null,10000001,Figueroa Credit Group,100002,Global Industries Inc,1266626.26,consumption_revenue,null,null,null,756,1266626.26,null,null
+null,10000001,Figueroa Credit Group,100003,TechVentures LLC,1337106.0399999996,consumption_revenue,null,null,null,788,1337106.0399999996,null,null
+null,10000003,Rhodes & Mcclain Consulting,100001,Acme Corporation,1135464.5199999996,consumption_revenue,null,null,null,735,1135464.5199999996,null,null
+null,10000005,Global Insurance Financial,100003,TechVentures LLC,1125998.669999999,consumption_revenue,null,null,null,687,1125998.669999999,null,null
+null,10000006,American Bank Inc,100003,TechVentures LLC,1199891.2000000002,consumption_revenue,null,null,null,755,1199891.2000000002,null,null
+null,10000008,Global Investment Inc,100001,Acme Corporation,1276515.3399999999,consumption_revenue,null,null,null,709,1276515.3399999999,null,null
+null,10000009,Global Supplier Consulting,100003,TechVentures LLC,1193592.62,consumption_revenue,null,null,null,688,1193592.62,null,null
+null,10000010,Wagner Credit,100001,Acme Corporation,1196878.9800000004,consumption_revenue,null,null,null,777,1196878.9800000004,null,null
+null,10000010,Wagner Credit,100005,Enterprise Solutions Group,1293814.99,consumption_revenue,null,null,null,788,1293814.99,null,null
+null,10000012,American Investment Group,100002,Global Industries Inc,1213465.8599999996,consumption_revenue,null,null,null,726,1213465.8599999996,null,null
+null,10000013,Hoffman Benefits Provider Company,100003,TechVentures LLC,1322027.6999999997,consumption_revenue,null,null,null,727,1322027.6999999997,null,null
+null,10000015,American Auditing Group,100004,International Holdings Ltd,1066722.5099999993,consumption_revenue,null,null,null,723,1066722.5099999993,null,null
+null,10000015,American Auditing Group,100005,Enterprise Solutions Group,1249304.16,consumption_revenue,null,null,null,726,1249304.16,null,null
+null,10000016,Robinson & Lawrence Corporation,100002,Global Industries Inc,1249553.9599999995,consumption_revenue,null,null,null,754,1249553.9599999995,null,null
+null,10000017,Port Insurance LLC,100002,Global Industries Inc,1239994.44,consumption_revenue,null,null,null,698,1239994.44,null,null
+null,10000017,Port Insurance LLC,100004,International Holdings Ltd,1116273.6,consumption_revenue,null,null,null,699,1116273.6,null,null
+null,10000018,American Insurance Partners,100001,Acme Corporation,1287347.0700000008,consumption_revenue,null,null,null,717,1287347.0700000008,null,null
+null,10000018,American Insurance Partners,100003,TechVentures LLC,1201153.0799999996,consumption_revenue,null,null,null,744,1201153.0799999996,null,null
+null,10000018,American Insurance Partners,100005,Enterprise Solutions Group,1327726.7199999997,consumption_revenue,null,null,null,735,1327726.7199999997,null,null
+null,10000019,Joshuaborough Investment Group,100004,International Holdings Ltd,1125634.81,consumption_revenue,null,null,null,714,1125634.81,null,null
+null,10000020,Garcia-James Credit Solutions,100001,Acme Corporation,1292634.0999999996,consumption_revenue,null,null,null,749,1292634.0999999996,null,null
+null,10000021,Global Insurance Associates,100002,Global Industries Inc,1148864,consumption_revenue,null,null,null,724,1148864,null,null
+null,10000023,Roman Investment,100003,TechVentures LLC,1279479.6499999994,consumption_revenue,null,null,null,756,1279479.6499999994,null,null
+null,10000025,Miller Insurance,100001,Acme Corporation,1143107.15,consumption_revenue,null,null,null,732,1143107.15,null,null
+null,10000026,Calderon-Montgomery Leasing Corporation,100003,TechVentures LLC,1329593.23,consumption_revenue,null,null,null,740,1329593.23,null,null
+null,10000030,American Leasing Co,100001,Acme Corporation,1262314.5700000003,consumption_revenue,null,null,null,742,1262314.5700000003,null,null
+null,10000030,American Leasing Co,100002,Global Industries Inc,1270794.9500000002,consumption_revenue,null,null,null,755,1270794.9500000002,null,null
+null,10000030,American Leasing Co,100003,TechVentures LLC,1172519.399999999,consumption_revenue,null,null,null,748,1172519.399999999,null,null
+null,10000030,American Leasing Co,100005,Enterprise Solutions Group,1342500.3799999997,consumption_revenue,null,null,null,734,1342500.3799999997,null,null
+null,10000031,South Vendor Partners,100001,Acme Corporation,1215860.8399999999,consumption_revenue,null,null,null,707,1215860.8399999999,null,null
+null,10000031,South Vendor Partners,100002,Global Industries Inc,1334973.1999999997,consumption_revenue,null,null,null,746,1334973.1999999997,null,null
+null,10000031,South Vendor Partners,100005,Enterprise Solutions Group,1006331.9899999999,consumption_revenue,null,null,null,709,1006331.9899999999,null,null
+null,10000032,West Supplier Advisors,100001,Acme Corporation,1076906.6600000001,consumption_revenue,null,null,null,726,1076906.6600000001,null,null
+null,10000033,Jacquelineland Credit Advisors,100001,Acme Corporation,1236734.15,consumption_revenue,null,null,null,736,1236734.15,null,null
+null,10000034,Lynch Insurance,100003,TechVentures LLC,1149326.3399999996,consumption_revenue,null,null,null,730,1149326.3399999996,null,null
+null,10000035,Global Leasing Corp,100002,Global Industries Inc,1118125.8799999994,consumption_revenue,null,null,null,735,1118125.8799999994,null,null
+null,10000035,Global Leasing Corp,100003,TechVentures LLC,1205683.5700000008,consumption_revenue,null,null,null,739,1205683.5700000008,null,null
+null,10000035,Global Leasing Corp,100004,International Holdings Ltd,1150055.77,consumption_revenue,null,null,null,724,1150055.77,null,null
+null,10000037,Jackson & Daniel Solutions,100002,Global Industries Inc,1365950.1700000004,consumption_revenue,null,null,null,750,1365950.1700000004,null,null
+null,10000037,Jackson & Daniel Solutions,100004,International Holdings Ltd,1302959.3199999998,consumption_revenue,null,null,null,769,1302959.3199999998,null,null
+null,10000038,American Consulting Advisors,100001,Acme Corporation,1371141.4599999997,consumption_revenue,null,null,null,707,1371141.4599999997,null,null
+null,10000040,Gray & Mayo Advisors,100001,Acme Corporation,1232331.6300000004,consumption_revenue,null,null,null,705,1232331.6300000004,null,null
+null,10000040,Gray & Mayo Advisors,100004,International Holdings Ltd,1333373.6000000006,consumption_revenue,null,null,null,727,1333373.6000000006,null,null
+null,10000040,Gray & Mayo Advisors,100005,Enterprise Solutions Group,1274858.8699999996,consumption_revenue,null,null,null,742,1274858.8699999996,null,null
+null,10000041,Lake Benefits Provider Company,100002,Global Industries Inc,1226037.539999999,consumption_revenue,null,null,null,704,1226037.539999999,null,null
+null,10000041,Lake Benefits Provider Company,100005,Enterprise Solutions Group,1095874.6400000006,consumption_revenue,null,null,null,692,1095874.6400000006,null,null
+null,10000042,Perez Supplier Co,100005,Enterprise Solutions Group,1211617.21,consumption_revenue,null,null,null,749,1211617.21,null,null
+null,10000043,Morales-Jones Benefits Provider Partners,100001,Acme Corporation,1093776.3800000004,consumption_revenue,null,null,null,712,1093776.3800000004,null,null
+null,10000043,Morales-Jones Benefits Provider Partners,100004,International Holdings Ltd,1379480.0700000005,consumption_revenue,null,null,null,752,1379480.0700000005,null,null
+null,10000043,Morales-Jones Benefits Provider Partners,100005,Enterprise Solutions Group,1278455.0900000008,consumption_revenue,null,null,null,765,1278455.0900000008,null,null
+null,10000044,American Consulting LLC,100004,International Holdings Ltd,1221748.5299999998,consumption_revenue,null,null,null,745,1221748.5299999998,null,null
+null,10000045,Gentry & Bradley Financial,100001,Acme Corporation,1250172.9300000004,consumption_revenue,null,null,null,740,1250172.9300000004,null,null
+null,10000046,Robbins Auditing,100001,Acme Corporation,1249987.25,consumption_revenue,null,null,null,730,1249987.25,null,null
+null,10000046,Robbins Auditing,100005,Enterprise Solutions Group,1288441.3599999999,consumption_revenue,null,null,null,732,1288441.3599999999,null,null
+null,10000047,Lewis & Porter Advisors,100001,Acme Corporation,1246125.2599999995,consumption_revenue,null,null,null,778,1246125.2599999995,null,null
+null,10000047,Lewis & Porter Advisors,100003,TechVentures LLC,1239859.4600000004,consumption_revenue,null,null,null,718,1239859.4600000004,null,null
+null,10000048,American Legal Services Advisors,100004,International Holdings Ltd,1272254.6400000001,consumption_revenue,null,null,null,756,1272254.6400000001,null,null
+null,10000049,American Vendor Group,100001,Acme Corporation,1234697.88,consumption_revenue,null,null,null,686,1234697.88,null,null
+null,10000049,American Vendor Group,100005,Enterprise Solutions Group,1222926.32,consumption_revenue,null,null,null,726,1222926.32,null,null
+null,10000050,Wilkerson & Day Corporation,100001,Acme Corporation,1208450.6900000004,consumption_revenue,null,null,null,711,1208450.6900000004,null,null
+null,10000050,Wilkerson & Day Corporation,100004,International Holdings Ltd,1371959.3399999996,consumption_revenue,null,null,null,735,1371959.3399999996,null,null
+null,10000050,Wilkerson & Day Corporation,100005,Enterprise Solutions Group,1403434.3700000006,consumption_revenue,null,null,null,763,1403434.3700000006,null,null
+null,10000051,Thomas Payroll Services,100003,TechVentures LLC,1258510.3099999998,consumption_revenue,null,null,null,735,1258510.3099999998,null,null
+null,10000052,Global Consulting Consulting,100001,Acme Corporation,1142719.3200000003,consumption_revenue,null,null,null,743,1142719.3200000003,null,null
+null,10000053,Global Legal Services Financial,100004,International Holdings Ltd,1286358.1700000004,consumption_revenue,null,null,null,778,1286358.1700000004,null,null
+null,10000054,American Auditing Corporation,100002,Global Industries Inc,1268129.2999999989,consumption_revenue,null,null,null,757,1268129.2999999989,null,null
+null,10000055,Taylor & Mcgee Services,100002,Global Industries Inc,1268284.3999999994,consumption_revenue,null,null,null,748,1268284.3999999994,null,null
+null,10000056,American Insurance Company,100002,Global Industries Inc,1235006.9699999995,consumption_revenue,null,null,null,703,1235006.9699999995,null,null
+null,10000058,Ross Vendor,100002,Global Industries Inc,1056924.8400000003,consumption_revenue,null,null,null,725,1056924.8400000003,null,null
+null,10000059,Robinson Legal Services,100001,Acme Corporation,1292986.2200000004,consumption_revenue,null,null,null,762,1292986.2200000004,null,null
+null,10000059,Robinson Legal Services,100004,International Holdings Ltd,1379496.7600000007,consumption_revenue,null,null,null,735,1379496.7600000007,null,null
+null,10000059,Robinson Legal Services,100005,Enterprise Solutions Group,1178841.6900000004,consumption_revenue,null,null,null,674,1178841.6900000004,null,null
+null,10000060,American Investment Solutions,100003,TechVentures LLC,1311457.9900000002,consumption_revenue,null,null,null,754,1311457.9900000002,null,null
+null,10000061,Global Consulting Services,100001,Acme Corporation,1042998.4699999996,consumption_revenue,null,null,null,730,1042998.4699999996,null,null
+null,10000061,Global Consulting Services,100003,TechVentures LLC,1255142.0300000005,consumption_revenue,null,null,null,735,1255142.0300000005,null,null
+null,10000062,Hicks Leasing Consulting,100003,TechVentures LLC,1041065.0599999998,consumption_revenue,null,null,null,703,1041065.0599999998,null,null
+null,10000063,Callahan Leasing Services,100001,Acme Corporation,1202899.3199999998,consumption_revenue,null,null,null,725,1202899.3199999998,null,null
+null,10000063,Callahan Leasing Services,100003,TechVentures LLC,1236432.2399999998,consumption_revenue,null,null,null,754,1236432.2399999998,null,null
+null,10000063,Callahan Leasing Services,100004,International Holdings Ltd,1035112.0100000005,consumption_revenue,null,null,null,676,1035112.0100000005,null,null
+null,10000064,Port Benefits Provider Advisors,100003,TechVentures LLC,965647.8099999999,consumption_revenue,null,null,null,674,965647.8099999999,null,null
+null,10000065,South Insurance Group,100001,Acme Corporation,1422311.1699999995,consumption_revenue,null,null,null,764,1422311.1699999995,null,null
+null,10000066,American Vendor Solutions,100001,Acme Corporation,1149294.3399999999,consumption_revenue,null,null,null,782,1149294.3399999999,null,null
+null,10000066,American Vendor Solutions,100002,Global Industries Inc,1152797.16,consumption_revenue,null,null,null,755,1152797.16,null,null
+null,10000069,Mack & Peterson Services,100004,International Holdings Ltd,1239197.4599999993,consumption_revenue,null,null,null,725,1239197.4599999993,null,null
+null,10000069,Mack & Peterson Services,100005,Enterprise Solutions Group,1343657.1899999995,consumption_revenue,null,null,null,740,1343657.1899999995,null,null
+null,10000071,Mckay Payroll Services,100005,Enterprise Solutions Group,1183671.1300000004,consumption_revenue,null,null,null,724,1183671.1300000004,null,null
+null,10000073,Teresaburgh Benefits Provider Corp,100005,Enterprise Solutions Group,1148883.9200000004,consumption_revenue,null,null,null,700,1148883.9200000004,null,null
+null,10000074,Global Benefits Provider Services,100002,Global Industries Inc,1243605.34,consumption_revenue,null,null,null,727,1243605.34,null,null
+null,10000074,Global Benefits Provider Services,100004,International Holdings Ltd,1181934.79,consumption_revenue,null,null,null,743,1181934.79,null,null
+null,10000075,"Gaines, Investment Partners",100003,TechVentures LLC,1108551.8500000006,consumption_revenue,null,null,null,707,1108551.8500000006,null,null
+null,10000076,American Bank LLC,100001,Acme Corporation,1239188.5799999987,consumption_revenue,null,null,null,727,1239188.5799999987,null,null
+null,10000076,American Bank LLC,100003,TechVentures LLC,1326764.6599999992,consumption_revenue,null,null,null,717,1326764.6599999992,null,null
+null,10000076,American Bank LLC,100004,International Holdings Ltd,1295497.8800000006,consumption_revenue,null,null,null,792,1295497.8800000006,null,null
+null,10000078,Martin & Ashley Inc,100002,Global Industries Inc,1287078.3600000003,consumption_revenue,null,null,null,767,1287078.3600000003,null,null
+null,10000079,Nielsen & Sellers Financial,100003,TechVentures LLC,1248975.3699999996,consumption_revenue,null,null,null,741,1248975.3699999996,null,null
+null,10000084,Johnbury Payroll Services Co,100003,TechVentures LLC,1317160.9900000002,consumption_revenue,null,null,null,769,1317160.9900000002,null,null
+null,10000085,Global Benefits Provider Consulting,100001,Acme Corporation,1252807.75,consumption_revenue,null,null,null,734,1252807.75,null,null
+null,10000085,Global Benefits Provider Consulting,100005,Enterprise Solutions Group,1495123.0899999999,consumption_revenue,null,null,null,726,1495123.0899999999,null,null
+null,10000086,Humphrey Supplier,100003,TechVentures LLC,1282508.3000000005,consumption_revenue,null,null,null,730,1282508.3000000005,null,null
