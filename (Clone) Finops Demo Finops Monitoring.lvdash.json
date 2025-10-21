@@ -1,0 +1,1302 @@
+{
+  "datasets": [
+    {
+      "name": "ds_counter_rec_rev_30d",
+      "displayName": "KPI: Recognized Revenue Last 30d",
+      "queryLines": [
+        "SELECT total_recognized_revenue_last_30d FROM fin_ops.biz.gold_counter_recognized_revenue_last_30d "
+      ]
+    },
+    {
+      "name": "ds_counter_actual_spend_30d",
+      "displayName": "KPI: Actual Supplier Spend Last 30d",
+      "queryLines": [
+        "SELECT total_actual_spend_last_30d FROM fin_ops.biz.gold_counter_actual_spend_last_30d "
+      ]
+    },
+    {
+      "name": "ds_counter_comm_rev_90d",
+      "displayName": "KPI: Committed Revenue Next 90d",
+      "queryLines": [
+        "SELECT date, region, product_line, committed_revenue_next_90d FROM fin_ops.biz.gold_contract_commitments ORDER BY date DESC "
+      ]
+    },
+    {
+      "name": "ds_counter_budget_variance",
+      "displayName": "KPI: Budget Variance To Date",
+      "queryLines": [
+        "SELECT budget_variance_to_date_usd FROM fin_ops.biz.gold_counter_budget_variance_to_date "
+      ]
+    },
+    {
+      "name": "ds_rev_vs_forecast_timeseries",
+      "displayName": "Daily Recognized vs Forecast by Region",
+      "queryLines": [
+        "SELECT date, region, product_line, 'recognized' AS metric_type, recognized_revenue_usd AS value_usd, CASE WHEN date BETWEEN DATE('2025-07-16') AND DATE('2025-08-10') THEN 1 ELSE 0 END AS is_event_window FROM fin_ops.biz.gold_financial_timeseries UNION ALL SELECT date, region, product_line, 'forecast' AS metric_type, forecast_revenue_usd AS value_usd, CASE WHEN date BETWEEN DATE('2025-07-16') AND DATE('2025-08-10') THEN 1 ELSE 0 END AS is_event_window FROM fin_ops.biz.gold_financial_timeseries ORDER BY date, region, metric_type "
+      ]
+    },
+    {
+      "name": "ds_spend_weekly_long",
+      "displayName": "Weekly Spend Actual vs Committed by Supplier Tier",
+      "queryLines": [
+        "SELECT week_start, region, product_line, supplier_tier, 'actual' AS metric_type, actual_spend_usd AS value_usd, approval_change_code_rate FROM fin_ops.biz.gold_supplier_spend_weekly UNION ALL SELECT week_start, region, product_line, supplier_tier, 'committed' AS metric_type, committed_spend_usd AS value_usd, approval_change_code_rate FROM fin_ops.biz.gold_supplier_spend_weekly ORDER BY week_start, region, product_line, supplier_tier, metric_type "
+      ]
+    },
+    {
+      "name": "ds_change_log",
+      "displayName": "Root Cause Log",
+      "queryLines": [
+        "SELECT change_date, change_type, scope_region, product_line, supplier_tier_or_customer, description, exception_code FROM fin_ops.biz.gold_change_log ORDER BY change_date "
+      ]
+    },
+    {
+      "name": "ds_budget_variance",
+      "displayName": "Daily Budget Variance",
+      "queryLines": [
+        "SELECT date, region, product_line, variance_usd, cumulative_variance_usd FROM fin_ops.biz.gold_budget_variance ORDER BY date, region "
+      ]
+    },
+    {
+      "name": "ds_cash_flow",
+      "displayName": "Daily Cash Flow",
+      "queryLines": [
+        "SELECT date, region, product_line, net_cash_flow_usd, cumulative_net_cash_flow_usd FROM fin_ops.biz.gold_cash_flow_timeseries ORDER BY date, region, product_line "
+      ]
+    },
+    {
+      "name": "ds_spend_daily_share",
+      "displayName": "Daily Supplier Spend Share",
+      "queryLines": [
+        "SELECT date, supplier_tier, spend_usd, share FROM fin_ops.biz.gold_supplier_spend_daily_share ORDER BY date, supplier_tier "
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "finops_monitoring",
+      "displayName": "FinOps Integrated View: Revenue vs Spend vs Plan",
+      "layout": [
+        {
+          "widget": {
+            "name": "header_intro",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# FinOps Integrated View: Revenue vs Spend vs Plan\n",
+                "Unified recognition actuals, supplier spend, commitments, and FP&A plans. Highlights the July divergence (policy change on 2025-07-15 and contract amendments on 2025-07-22), shows segment drivers by region/product_line/supplier_tier, and quantifies budget variance and cash burn. Recovery expected late Aug.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_total_recognized_revenue_30d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_counter_rec_rev_30d",
+                  "fields": [
+                    {
+                      "name": "sum(total_recognized_revenue_last_30d)",
+                      "expression": "SUM(`total_recognized_revenue_last_30d`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_recognized_revenue_last_30d)",
+                  "displayName": "Total Recognized Revenue (Last 30d, $)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Total Recognized Revenue (Last 30d, $)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Sum of recognized_revenue_usd over trailing 30 days across regions."
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_total_actual_spend_30d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_counter_actual_spend_30d",
+                  "fields": [
+                    {
+                      "name": "sum(total_actual_spend_last_30d)",
+                      "expression": "SUM(`total_actual_spend_last_30d`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_actual_spend_last_30d)",
+                  "displayName": "Total Actual Supplier Spend (Last 30d, $)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Total Actual Supplier Spend (Last 30d, $)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Sum of actual_spend_usd over trailing 30 days."
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_committed_revenue_90d_forward",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_counter_comm_rev_90d",
+                  "fields": [
+                    {
+                      "name": "max(date)",
+                      "expression": "MAX(`date`)"
+                    },
+                    {
+                      "name": "sum(committed_revenue_next_90d)",
+                      "expression": "SUM(`committed_revenue_next_90d`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(committed_revenue_next_90d)",
+                  "displayName": "Committed Revenue (Next 90d, $)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Committed Revenue (Next 90d, $)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Forward-looking committed revenue from contract milestones for next 90 days."
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_budget_variance_to_date",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_counter_budget_variance",
+                  "fields": [
+                    {
+                      "name": "sum(budget_variance_to_date_usd)",
+                      "expression": "SUM(`budget_variance_to_date_usd`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(budget_variance_to_date_usd)",
+                  "displayName": "Budget Variance To Date ($)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Budget Variance To Date ($)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Cumulative (actuals - budget) to date, all lines."
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 2,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "section_anomaly_header",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## July Divergence: Recognition Shortfall vs Spend Surge\n",
+                "Daily lines show EMEA Rail shortfalls post 2025-07-16; weekly bars show spend batching post 2025-07-15 policy change.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "line_recognized_vs_forecast_by_region_daily",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_rev_vs_forecast_timeseries",
+                  "fields": [
+                    {
+                      "name": "daily(date)",
+                      "expression": "DATE_TRUNC(\"DAY\", `date`)"
+                    },
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    },
+                    {
+                      "name": "product_line",
+                      "expression": "`product_line`"
+                    },
+                    {
+                      "name": "metric_type",
+                      "expression": "`metric_type`"
+                    },
+                    {
+                      "name": "sum(value_usd)",
+                      "expression": "SUM(`value_usd`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(date)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "axis": {
+                    "title": "Date"
+                  },
+                  "displayName": "Date"
+                },
+                "y": {
+                  "fieldName": "sum(value_usd)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "axis": {
+                    "title": "USD"
+                  },
+                  "displayName": "Value ($)"
+                },
+                "color": {
+                  "fieldName": "metric_type",
+                  "displayName": "Series (recognized vs forecast)"
+                }
+              },
+              "frame": {
+                "title": "Daily Recognized Revenue vs Forecast (By Region - use Region/Product filters)",
+                "showTitle": true,
+                "description": "X: date (daily); Y: USD; color: recognized vs forecast. Filter by region and product_line to isolate EMEA Rail shortfall beginning 2025-07-16."
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_weekly_actual_vs_committed_by_tier_grouped",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_spend_weekly_long",
+                  "fields": [
+                    {
+                      "name": "weekly(week_start)",
+                      "expression": "DATE_TRUNC(\"WEEK\", `week_start`)"
+                    },
+                    {
+                      "name": "supplier_tier",
+                      "expression": "`supplier_tier`"
+                    },
+                    {
+                      "name": "metric_type",
+                      "expression": "`metric_type`"
+                    },
+                    {
+                      "name": "sum(value_usd)",
+                      "expression": "SUM(`value_usd`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "weekly(week_start)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "axis": {
+                    "title": "Week Start"
+                  },
+                  "displayName": "Week Start"
+                },
+                "y": {
+                  "fieldName": "sum(value_usd)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "axis": {
+                    "title": "Spend ($)"
+                  },
+                  "displayName": "Spend ($)"
+                },
+                "color": {
+                  "fieldName": "supplier_tier",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Supplier Tier"
+                }
+              },
+              "mark": {
+                "layout": "group"
+              },
+              "frame": {
+                "title": "Actual Spend vs Committed Spend (Weekly by Supplier Tier)",
+                "showTitle": true,
+                "description": "Grouped by metric (actual vs committed) per week; color by supplier_tier. Use Region/Product filters. Highlights approval-driven batching post 2025-07-15."
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 7,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "line_cumulative_budget_variance_by_region",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_budget_variance",
+                  "fields": [
+                    {
+                      "name": "daily(date)",
+                      "expression": "DATE_TRUNC(\"DAY\", `date`)"
+                    },
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    },
+                    {
+                      "name": "sum(cumulative_variance_usd)",
+                      "expression": "SUM(`cumulative_variance_usd`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(date)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "axis": {
+                    "title": "Date"
+                  },
+                  "displayName": "Date"
+                },
+                "y": {
+                  "fieldName": "sum(cumulative_variance_usd)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  },
+                  "axis": {
+                    "title": "Cumulative Variance ($)"
+                  },
+                  "displayName": "Cumulative Variance ($)"
+                },
+                "color": {
+                  "fieldName": "region",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Region"
+                }
+              },
+              "frame": {
+                "title": "Cumulative Budget Variance by Region",
+                "showTitle": true,
+                "description": "X: date; Y: cumulative variance; color: region. Divergence accumulates to ~$4.8M by 2025-08-10; flattening as recovery begins."
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "line_cash_burn_trajectory_daily_by_product",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cash_flow",
+                  "fields": [
+                    {
+                      "name": "daily(date)",
+                      "expression": "DATE_TRUNC(\"DAY\", `date`)"
+                    },
+                    {
+                      "name": "product_line",
+                      "expression": "`product_line`"
+                    },
+                    {
+                      "name": "sum(net_cash_flow_usd)",
+                      "expression": "SUM(`net_cash_flow_usd`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(date)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "axis": {
+                    "title": "Date"
+                  },
+                  "displayName": "Date"
+                },
+                "y": {
+                  "fieldName": "sum(net_cash_flow_usd)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  },
+                  "axis": {
+                    "title": "Net Cash Flow ($)"
+                  },
+                  "displayName": "Net Cash Flow ($)"
+                },
+                "color": {
+                  "fieldName": "product_line",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Product Line"
+                }
+              },
+              "frame": {
+                "title": "Cash Burn Trajectory (Daily)",
+                "showTitle": true,
+                "description": "X: date; Y: net_cash_flow_usd; lines by product_line. Visible acceleration during 2025-07-16..2025-08-10."
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 12,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "pie_spend_share_by_supplier_tier",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_spend_daily_share",
+                  "fields": [
+                    {
+                      "name": "supplier_tier",
+                      "expression": "`supplier_tier`"
+                    },
+                    {
+                      "name": "sum(spend_usd)",
+                      "expression": "SUM(`spend_usd`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "sum(spend_usd)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Spend ($)"
+                },
+                "color": {
+                  "fieldName": "supplier_tier",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Supplier Tier"
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "frame": {
+                "title": "Segment Mix: Spend by Supplier Tier (Share)",
+                "showTitle": true,
+                "description": "Share of actual_spend_usd by supplier_tier over selected period; Tier2/Tier3 mix lifts during batching."
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 17,
+            "width": 2,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "table_root_cause_log",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_change_log",
+                  "fields": [
+                    {
+                      "name": "change_date",
+                      "expression": "`change_date`"
+                    },
+                    {
+                      "name": "change_type",
+                      "expression": "`change_type`"
+                    },
+                    {
+                      "name": "scope_region",
+                      "expression": "`scope_region`"
+                    },
+                    {
+                      "name": "product_line",
+                      "expression": "`product_line`"
+                    },
+                    {
+                      "name": "supplier_tier_or_customer",
+                      "expression": "`supplier_tier_or_customer`"
+                    },
+                    {
+                      "name": "description",
+                      "expression": "`description`"
+                    },
+                    {
+                      "name": "exception_code",
+                      "expression": "`exception_code`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "change_date",
+                    "displayName": "Change Date",
+                    "type": "date",
+                    "displayAs": "date",
+                    "dateTimeFormat": "yyyy-MM-dd",
+                    "order": 0
+                  },
+                  {
+                    "fieldName": "change_type",
+                    "displayName": "Change Type",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 1
+                  },
+                  {
+                    "fieldName": "scope_region",
+                    "displayName": "Region",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 2
+                  },
+                  {
+                    "fieldName": "product_line",
+                    "displayName": "Product Line",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 3
+                  },
+                  {
+                    "fieldName": "supplier_tier_or_customer",
+                    "displayName": "Supplier Tier or Customer",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 4
+                  },
+                  {
+                    "fieldName": "description",
+                    "displayName": "Description",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 5
+                  },
+                  {
+                    "fieldName": "exception_code",
+                    "displayName": "Exception Code",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 6
+                  }
+                ]
+              },
+              "itemsPerPage": 10,
+              "frame": {
+                "title": "Root Cause Log: Policy Changes and Contract Amendments",
+                "showTitle": true,
+                "description": "Entries for 2025-07-15 procurement policy change and 2025-07-22 Rail contract amendments explaining divergence.",
+                "showDescription": true
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 17,
+            "width": 4,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "global_filters",
+      "displayName": "Global Filters",
+      "layout": [
+        {
+          "widget": {
+            "name": "filter_date_range",
+            "queries": [
+              {
+                "name": "ds_rev_vs_forecast_timeseries_date",
+                "query": {
+                  "datasetName": "ds_rev_vs_forecast_timeseries",
+                  "fields": [
+                    {
+                      "name": "date",
+                      "expression": "`date`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_spend_weekly_long_week_start",
+                "query": {
+                  "datasetName": "ds_spend_weekly_long",
+                  "fields": [
+                    {
+                      "name": "week_start",
+                      "expression": "`week_start`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_change_log_change_date",
+                "query": {
+                  "datasetName": "ds_change_log",
+                  "fields": [
+                    {
+                      "name": "change_date",
+                      "expression": "`change_date`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_budget_variance_date",
+                "query": {
+                  "datasetName": "ds_budget_variance",
+                  "fields": [
+                    {
+                      "name": "date",
+                      "expression": "`date`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_cash_flow_date",
+                "query": {
+                  "datasetName": "ds_cash_flow",
+                  "fields": [
+                    {
+                      "name": "date",
+                      "expression": "`date`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_spend_daily_share_date",
+                "query": {
+                  "datasetName": "ds_spend_daily_share",
+                  "fields": [
+                    {
+                      "name": "date",
+                      "expression": "`date`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_counter_comm_rev_90d_date",
+                "query": {
+                  "datasetName": "ds_counter_comm_rev_90d",
+                  "fields": [
+                    {
+                      "name": "date",
+                      "expression": "`date`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-date-range-picker",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "date",
+                    "displayName": "Date",
+                    "queryName": "ds_rev_vs_forecast_timeseries_date"
+                  },
+                  {
+                    "fieldName": "week_start",
+                    "displayName": "Week Start",
+                    "queryName": "ds_spend_weekly_long_week_start"
+                  },
+                  {
+                    "fieldName": "change_date",
+                    "displayName": "Change Date",
+                    "queryName": "ds_change_log_change_date"
+                  },
+                  {
+                    "fieldName": "date",
+                    "displayName": "Date",
+                    "queryName": "ds_budget_variance_date"
+                  },
+                  {
+                    "fieldName": "date",
+                    "displayName": "Date",
+                    "queryName": "ds_cash_flow_date"
+                  },
+                  {
+                    "fieldName": "date",
+                    "displayName": "Date",
+                    "queryName": "ds_spend_daily_share_date"
+                  },
+                  {
+                    "fieldName": "date",
+                    "displayName": "Date",
+                    "queryName": "ds_counter_comm_rev_90d_date"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_region",
+            "queries": [
+              {
+                "name": "ds_rev_vs_forecast_timeseries_region",
+                "query": {
+                  "datasetName": "ds_rev_vs_forecast_timeseries",
+                  "fields": [
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_spend_weekly_long_region",
+                "query": {
+                  "datasetName": "ds_spend_weekly_long",
+                  "fields": [
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_change_log_scope_region",
+                "query": {
+                  "datasetName": "ds_change_log",
+                  "fields": [
+                    {
+                      "name": "scope_region",
+                      "expression": "`scope_region`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_budget_variance_region",
+                "query": {
+                  "datasetName": "ds_budget_variance",
+                  "fields": [
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_cash_flow_region",
+                "query": {
+                  "datasetName": "ds_cash_flow",
+                  "fields": [
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_counter_comm_rev_90d_region",
+                "query": {
+                  "datasetName": "ds_counter_comm_rev_90d",
+                  "fields": [
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "region",
+                    "displayName": "Region",
+                    "queryName": "ds_rev_vs_forecast_timeseries_region"
+                  },
+                  {
+                    "fieldName": "region",
+                    "displayName": "Region",
+                    "queryName": "ds_spend_weekly_long_region"
+                  },
+                  {
+                    "fieldName": "scope_region",
+                    "displayName": "Region",
+                    "queryName": "ds_change_log_scope_region"
+                  },
+                  {
+                    "fieldName": "region",
+                    "displayName": "Region",
+                    "queryName": "ds_budget_variance_region"
+                  },
+                  {
+                    "fieldName": "region",
+                    "displayName": "Region",
+                    "queryName": "ds_cash_flow_region"
+                  },
+                  {
+                    "fieldName": "region",
+                    "displayName": "Region",
+                    "queryName": "ds_counter_comm_rev_90d_region"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_product_line",
+            "queries": [
+              {
+                "name": "ds_rev_vs_forecast_timeseries_product_line",
+                "query": {
+                  "datasetName": "ds_rev_vs_forecast_timeseries",
+                  "fields": [
+                    {
+                      "name": "product_line",
+                      "expression": "`product_line`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_spend_weekly_long_product_line",
+                "query": {
+                  "datasetName": "ds_spend_weekly_long",
+                  "fields": [
+                    {
+                      "name": "product_line",
+                      "expression": "`product_line`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_change_log_product_line",
+                "query": {
+                  "datasetName": "ds_change_log",
+                  "fields": [
+                    {
+                      "name": "product_line",
+                      "expression": "`product_line`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_budget_variance_product_line",
+                "query": {
+                  "datasetName": "ds_budget_variance",
+                  "fields": [
+                    {
+                      "name": "product_line",
+                      "expression": "`product_line`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_cash_flow_product_line",
+                "query": {
+                  "datasetName": "ds_cash_flow",
+                  "fields": [
+                    {
+                      "name": "product_line",
+                      "expression": "`product_line`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_counter_comm_rev_90d_product_line",
+                "query": {
+                  "datasetName": "ds_counter_comm_rev_90d",
+                  "fields": [
+                    {
+                      "name": "product_line",
+                      "expression": "`product_line`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "product_line",
+                    "displayName": "Product Line",
+                    "queryName": "ds_rev_vs_forecast_timeseries_product_line"
+                  },
+                  {
+                    "fieldName": "product_line",
+                    "displayName": "Product Line",
+                    "queryName": "ds_spend_weekly_long_product_line"
+                  },
+                  {
+                    "fieldName": "product_line",
+                    "displayName": "Product Line",
+                    "queryName": "ds_change_log_product_line"
+                  },
+                  {
+                    "fieldName": "product_line",
+                    "displayName": "Product Line",
+                    "queryName": "ds_budget_variance_product_line"
+                  },
+                  {
+                    "fieldName": "product_line",
+                    "displayName": "Product Line",
+                    "queryName": "ds_cash_flow_product_line"
+                  },
+                  {
+                    "fieldName": "product_line",
+                    "displayName": "Product Line",
+                    "queryName": "ds_counter_comm_rev_90d_product_line"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_supplier_tier",
+            "queries": [
+              {
+                "name": "ds_spend_weekly_long_supplier_tier",
+                "query": {
+                  "datasetName": "ds_spend_weekly_long",
+                  "fields": [
+                    {
+                      "name": "supplier_tier",
+                      "expression": "`supplier_tier`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_spend_daily_share_supplier_tier",
+                "query": {
+                  "datasetName": "ds_spend_daily_share",
+                  "fields": [
+                    {
+                      "name": "supplier_tier",
+                      "expression": "`supplier_tier`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "supplier_tier",
+                    "displayName": "Supplier Tier",
+                    "queryName": "ds_spend_weekly_long_supplier_tier"
+                  },
+                  {
+                    "fieldName": "supplier_tier",
+                    "displayName": "Supplier Tier",
+                    "queryName": "ds_spend_daily_share_supplier_tier"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 2,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    }
+  }
+}
