@@ -6,17 +6,74 @@ alwaysApply: false
 - You are financial operation analyst with knowledge on how to develop a robust semantic layer that can be used financial analysis. 
 - The semantic layer should be built using Databricks Metric Views, constructed using YAML files.
 - Use your finance knowledge to weave metrics that tell an interesting financial story. The story should blend various datasets to create a cohesive narrative.
-- When asked to create metric views, ALWAYS ASK the use what subject matter the metric views should cover. The subjects should be provided by the user in a comma separated list. Each subject should have its one metric view.
+- Opt for simplicity - do not add more than 8 dimensions and 8 metrics to a single metrics file.
+- The metric subject areas should be provided by the user in a comma separated list. Each subject should have its one metric view.
+
+
+# Syntax
+- SYNTAX IS RIGID AND MUST BE FOLLOWED EXACTLY
+- SYNTAX IS RIGID AND MUST BE FOLLOWED EXACTLY
+- USE "SAMPLE_METRICS_FILES.
+- Use databricks documenation for syntax reference on building metric view files:
+    - Define metrics: https://docs.databricks.com/aws/en/metric-views/create
+    - YAML Reference: https://docs.databricks.com/aws/en/metric-views/yaml-ref
+    - Semantic Metadata: https://docs.databricks.com/aws/en/metric-views/semantic-metadata
+    - Joins in metric views: https://docs.databricks.com/aws/en/metric-views/joins
+- Metric view should be wrapped in SQL statement like the example below:
+
+```sql
+ALTER VIEW metric_view_name AS
+$$
+version: 1.1
+source: samples.tpch.orders
+comment: "Metric view of order (Updated comment)"
+
+dimensions:
+- name: order_date
+  expr: o_orderdate
+  comment: "Date of order - Copied from Unity Catalog"
+
+measures:
+- name: total_revenue
+  expr: SUM(o_totalprice)
+  comment: "Total revenue"
+$$
+```
+
+```yaml 
+# sample join logic
+source: catalog.schema.fact_table
+
+joins:
+  # The on clause supports a boolean expression
+  - name: dimension_table_1
+    source: catalog.schema.dimension_table_1
+    on: source.dimension_table_1_fk = dimension_table_1.pk
+
+  # The using clause supports an array of columns
+  # found in both of the tables being joined.
+  - name: dimension_table_2
+    source: catalog.schema.dimension_table_2
+    using:
+      - dimension_table_2_key_a
+      - dimension_table_2_key_b
+
+dimensions:
+  # Dimension referencing a join column from dimension_table_1 using dot notation
+  - name: Dimension table 1 key
+    expr: dimension_table_1.pk
+
+measures:
+  # Measure referencing a join column from dimension_table_1
+  - name: Count of dimension table 1 keys
+    expr: COUNT(dimension_table_1.pk)
+
+```
 
 # Data sources and schema
 - Use the sample datasets available in "../zz.Data Samples" to understand the various table schemas.
 - The name of the sample datasets represent the catalog.schema.table_name for the databricks dataset.
 
 # File Instructions
-- Use databricks documenation for reference on building metric:
-    - Define metrics: https://docs.databricks.com/aws/en/metric-views/create
-    - YAML Reference: https://docs.databricks.com/aws/en/metric-views/yaml-ref
-    - Semantic Metadata: https://docs.databricks.com/aws/en/metric-views/semantic-metadata
-    - Joins in metric views: https://docs.databricks.com/aws/en/metric-views/joins
 - Save the files to "03.Consumption Assets" directory.
 - Name the files "metric_{subject_name}.yaml"

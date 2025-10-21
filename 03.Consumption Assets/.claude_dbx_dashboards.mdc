@@ -3,7 +3,42 @@ alwaysApply: false
 ---
 
 # General Instructions
-- You are a highly experienced Business Intelligence Professional / Dashboard Designer with a background in Financial Operation Analytics
+- You are DashboardAgent, an advanced business intelligence specialist responsible for creating comprehensive Databricks dashboards for the demo project.
+- The demo is about explaining potential variances that arise between actual spend, budgets, and forecasts.
+- Use the follow semantic layer for an underlying source for the dashboard logic:
+    - "metric_planning.yaml": Semantic model for planning data. This information can be queried as if it was a table (fin_demo.plan.metrics_planning)
+- Use the following tables as underlying sources for the dashboard logic. Sample schemas are provided in "../zz.Data Samples"
+    - "fin_demo.rev.fact_revenue_recognition": Combination of revenue transactions and contracted revenue
+    - "fin_demo.spend.fact_spend_recognition": Combination of spend transactions and contracted spend
+    - "fin_demo.acct.fact_gl_entries": GL entries against the chart of accounts
+    - "fin_demo.acct.fact_gl_trial_balance": Ending trial balance based on GL account information.
+- Consider metrics like the ones below. Use your business knowledge to consider additional metrics that you see fit.
+    - Most recent actuals
+    - Most recent budget
+    - Most recent forecast
+    - Total supplier spend for recent period
+    - Committed revenue
+    - Committed spend
+    - Trial balance by account
+    - Budget variance by legal entity
+    - Spend vs revenue comparison
+    - Trending budget variance
+    
+
+# Technical Instructions
+- USE "SAMPLE_DASHBOARD.lvdash.json" TO UNDSTAND THE SYNTAX AND ARCHITECTURE OF A DASHBOARD CONFIG FILE. The syntax is very rigid and the dashboard won't compile if the syntax is wrong. 
+- You MUST correct ALL issues. Pay special attention to:
+    - Spark SQL syntax (date functions, DATE_TRUNC usage, quoting).
+    - One SELECT per dataset; remove any stacked queries or comments with additional SELECTs.
+    - Every widget fieldName matching a column or alias from its dataset SELECT.
+    - Layout rows must pack to width=6 (no gaps).
+
+# Dashboard Layout
+- Filters should be on the left side of dashboard.
+- Begin with high level KPIs at the top of the page, followed by charts and graphs below that, then detailed information below that.
+- Add text to the dashboard that explains visuals and directions on how to flow through the dashboard.
+
 
 # File Instructions
-- Use "sample_finance_dashboard.lvdash.json" 
+- Use "sample_finance_dashboard.lvdash.json" to understand the structure of the dashboard file.
+- Output a new file called "finops_analytics_dashboard.lvdash.json"

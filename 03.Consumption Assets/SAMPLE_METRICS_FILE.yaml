@@ -1,0 +1,69 @@
+version: 1.1
+source: samples.tpch.orders
+comment: Comprehensive sales metrics with enhanced semantic metadata
+dimensions:
+  - name: order_date
+    expr: o_orderdate
+    comment: Date when the order was placed
+    display_name: Order Date
+    format:
+      type: date
+      date_format: year_month_day
+      leading_zeros: true
+    synonyms:
+      - order time
+      - date of order
+  - name: customer_segment
+    expr: |
+      CASE
+        WHEN o_totalprice > 100000 THEN 'Enterprise'
+        WHEN o_totalprice > 10000 THEN 'Mid-market'
+        ELSE 'SMB'
+      END
+    comment: Customer classification based on order value
+    display_name: Customer Segment
+    synonyms:
+      - segment
+      - customer tier
+measures:
+  - name: total_revenue
+    expr: SUM(o_totalprice)
+    comment: Total revenue from all orders
+    display_name: Total Revenue
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      hide_group_separator: false
+      abbreviation: compact
+    synonyms:
+      - revenue
+      - total sales
+      - sales amount
+  - name: order_count
+    expr: COUNT(1)
+    comment: Total number of orders
+    display_name: Order Count
+    format:
+      type: number
+      decimal_places:
+        type: all
+      hide_group_separator: true
+    synonyms:
+      - count
+      - number of orders
+  - name: avg_order_value
+    expr: SUM(o_totalprice) / COUNT(1)
+    comment: Average revenue per order
+    display_name: Average Order Value
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+    synonyms:
+      - aov
+      - average revenue
