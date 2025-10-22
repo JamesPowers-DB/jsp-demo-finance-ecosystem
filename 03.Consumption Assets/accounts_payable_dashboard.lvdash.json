@@ -1,0 +1,1538 @@
+{
+  "datasets": [
+    {
+      "name": "ds_ap_current_balance",
+      "displayName": "Current AP Balance",
+      "queryLines": [
+        "SELECT SUM(credit_balance) AS total_ap_balance FROM fin_demo.acct.fact_gl_trial_balances WHERE account_name = 'Accounts Payable' AND as_of_date = (SELECT MAX(as_of_date) FROM fin_demo.acct.fact_gl_trial_balances)"
+      ]
+    },
+    {
+      "name": "ds_ap_supplier_count",
+      "displayName": "Active Supplier Count",
+      "queryLines": [
+        "SELECT COUNT(DISTINCT third_party_name) AS supplier_count FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' AND gl_date >= DATE_SUB(CURRENT_DATE(), 90)"
+      ]
+    },
+    {
+      "name": "ds_ap_payments_30d",
+      "displayName": "AP Payments Last 30 Days",
+      "queryLines": [
+        "SELECT SUM(debit_amount) AS total_payments FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' AND debit_amount > 0 AND gl_date >= DATE_SUB(CURRENT_DATE(), 30)"
+      ]
+    },
+    {
+      "name": "ds_ap_entry_count",
+      "displayName": "AP Transaction Count",
+      "queryLines": [
+        "SELECT COUNT(*) AS transaction_count FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' AND gl_date >= DATE_SUB(CURRENT_DATE(), 90)"
+      ]
+    },
+    {
+      "name": "ds_ap_balance_quarterly",
+      "displayName": "AP Balance Trend (Quarterly)",
+      "queryLines": [
+        "SELECT DATE_TRUNC('QUARTER', as_of_date) AS quarter, legal_entity_name, SUM(credit_balance) AS ap_balance, SUM(entry_count) AS transaction_volume FROM fin_demo.acct.fact_gl_trial_balances WHERE account_name = 'Accounts Payable' GROUP BY DATE_TRUNC('QUARTER', as_of_date), legal_entity_name ORDER BY quarter, legal_entity_name"
+      ]
+    },
+    {
+      "name": "ds_ap_top_suppliers",
+      "displayName": "Top Suppliers by AP Volume",
+      "queryLines": [
+        "SELECT third_party_name, legal_entity_name, SUM(credit_amount) AS total_invoiced, SUM(debit_amount) AS total_paid, SUM(credit_amount) - SUM(debit_amount) AS outstanding_balance, COUNT(*) AS transaction_count FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' AND gl_date >= DATE_SUB(CURRENT_DATE(), 180) GROUP BY third_party_name, legal_entity_name ORDER BY outstanding_balance DESC"
+      ]
+    },
+    {
+      "name": "ds_ap_by_legal_entity",
+      "displayName": "AP Balance by Legal Entity",
+      "queryLines": [
+        "SELECT legal_entity_name, SUM(credit_balance) AS ap_balance, SUM(entry_count) AS entries FROM fin_demo.acct.fact_gl_trial_balances WHERE account_name = 'Accounts Payable' AND as_of_date = (SELECT MAX(as_of_date) FROM fin_demo.acct.fact_gl_trial_balances) GROUP BY legal_entity_name ORDER BY ap_balance DESC"
+      ]
+    },
+    {
+      "name": "ds_ap_by_category",
+      "displayName": "AP Spend by Category",
+      "queryLines": [
+        "SELECT category, legal_entity_name, SUM(credit_amount) AS total_spend, COUNT(DISTINCT third_party_name) AS supplier_count FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' AND gl_date >= DATE_SUB(CURRENT_DATE(), 90) GROUP BY category, legal_entity_name ORDER BY total_spend DESC"
+      ]
+    },
+    {
+      "name": "ds_ap_payment_activity_monthly",
+      "displayName": "Monthly Payment Activity",
+      "queryLines": [
+        "SELECT DATE_TRUNC('MONTH', gl_date) AS month, legal_entity_name, SUM(credit_amount) AS invoices, SUM(debit_amount) AS payments, SUM(credit_amount) - SUM(debit_amount) AS net_change FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' GROUP BY DATE_TRUNC('MONTH', gl_date), legal_entity_name ORDER BY month, legal_entity_name"
+      ]
+    },
+    {
+      "name": "ds_supplier_flux_quarterly",
+      "displayName": "Quarterly Supplier Flux Analysis",
+      "queryLines": [
+        "SELECT DATE_TRUNC('QUARTER', gl_date) AS quarter, legal_entity_name, category, COUNT(DISTINCT third_party_name) AS active_suppliers, SUM(credit_amount) AS total_invoiced, SUM(debit_amount) AS total_paid, AVG(credit_amount) AS avg_invoice_amount FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' GROUP BY DATE_TRUNC('QUARTER', gl_date), legal_entity_name, category ORDER BY quarter DESC, total_invoiced DESC"
+      ]
+    },
+    {
+      "name": "ds_ap_aging_by_supplier",
+      "displayName": "AP Outstanding by Supplier",
+      "queryLines": [
+        "SELECT third_party_name, legal_entity_name, category, MIN(gl_date) AS earliest_transaction, MAX(gl_date) AS latest_transaction, SUM(credit_amount) - SUM(debit_amount) AS outstanding_balance FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' GROUP BY third_party_name, legal_entity_name, category HAVING SUM(credit_amount) - SUM(debit_amount) > 0 ORDER BY outstanding_balance DESC"
+      ]
+    },
+    {
+      "name": "ds_ap_transactions_detail",
+      "displayName": "Detailed AP Transaction Log",
+      "queryLines": [
+        "SELECT gl_date, transaction_type, reference_number, third_party_name, legal_entity_name, cost_center_name, category, debit_amount, credit_amount, created_timestamp FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' ORDER BY gl_date DESC, created_timestamp DESC"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "ap_overview",
+      "displayName": "Accounts Payable Overview & Supplier Flux Analysis",
+      "layout": [
+        {
+          "widget": {
+            "name": "header_intro",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# Accounts Payable Management Dashboard\n",
+                "Comprehensive view of Accounts Payable activity including current balances, payment trends, and quarterly supplier flux analysis. This dashboard provides insights into supplier relationships, payment patterns, and outstanding obligations across all legal entities and cost centers.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_current_ap_balance",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ap_current_balance",
+                  "fields": [
+                    {
+                      "name": "sum(total_ap_balance)",
+                      "expression": "SUM(`total_ap_balance`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_ap_balance)",
+                  "displayName": "Current AP Balance",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Current AP Balance",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Total Accounts Payable balance as of the most recent trial balance date. Represents the sum of all outstanding vendor obligations across all legal entities."
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_active_suppliers",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ap_supplier_count",
+                  "fields": [
+                    {
+                      "name": "sum(supplier_count)",
+                      "expression": "SUM(`supplier_count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(supplier_count)",
+                  "displayName": "Active Suppliers (Last 90 Days)",
+                  "format": {
+                    "type": "number",
+                    "abbreviation": "none",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Active Suppliers (Last 90 Days)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Count of distinct suppliers with AP activity in the trailing 90-day period. Indicates breadth of vendor relationships and supply chain diversity."
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_payments_30d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ap_payments_30d",
+                  "fields": [
+                    {
+                      "name": "sum(total_payments)",
+                      "expression": "SUM(`total_payments`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_payments)",
+                  "displayName": "Total Payments (Last 30 Days)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Total Payments (Last 30 Days)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Sum of all AP payments made in the trailing 30-day period. Reflects recent cash outflow to suppliers and payment velocity."
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_transaction_count",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ap_entry_count",
+                  "fields": [
+                    {
+                      "name": "sum(transaction_count)",
+                      "expression": "SUM(`transaction_count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(transaction_count)",
+                  "displayName": "AP Transactions (Last 90 Days)",
+                  "format": {
+                    "type": "number",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "AP Transactions (Last 90 Days)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Total number of AP transactions (invoices and payments) processed in the last 90 days. Higher volumes may indicate operational complexity or frequent supplier interactions."
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 2,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "section_trend_analysis",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## AP Balance Trends & Payment Activity\n",
+                "Quarterly AP balance progression and monthly payment patterns across legal entities. Rising balances may indicate extended payment terms or increased purchasing volume, while declining balances suggest accelerated payments or reduced procurement.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "line_ap_balance_quarterly",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ap_balance_quarterly",
+                  "fields": [
+                    {
+                      "name": "quarterly(quarter)",
+                      "expression": "DATE_TRUNC(\"QUARTER\", `quarter`)"
+                    },
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    },
+                    {
+                      "name": "sum(ap_balance)",
+                      "expression": "SUM(`ap_balance`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "quarterly(quarter)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "axis": {
+                    "title": "Quarter"
+                  },
+                  "displayName": "Quarter"
+                },
+                "y": {
+                  "fieldName": "sum(ap_balance)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  },
+                  "axis": {
+                    "title": "AP Balance ($)"
+                  },
+                  "displayName": "AP Balance ($)"
+                },
+                "color": {
+                  "fieldName": "legal_entity_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Legal Entity"
+                }
+              },
+              "frame": {
+                "title": "Quarterly AP Balance Trend by Legal Entity",
+                "showTitle": true,
+                "description": "Tracks the ending AP balance for each quarter segmented by legal entity. Upward trends may signal increasing procurement activity or extended Days Payable Outstanding (DPO), while downward trends suggest improved working capital management or reduced purchasing."
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_payment_activity_monthly",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ap_payment_activity_monthly",
+                  "fields": [
+                    {
+                      "name": "monthly(month)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `month`)"
+                    },
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    },
+                    {
+                      "name": "sum(invoices)",
+                      "expression": "SUM(`invoices`)"
+                    },
+                    {
+                      "name": "sum(payments)",
+                      "expression": "SUM(`payments`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(month)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "axis": {
+                    "title": "Month"
+                  },
+                  "displayName": "Month"
+                },
+                "y": {
+                  "fieldName": "sum(invoices)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  },
+                  "axis": {
+                    "title": "Amount ($)"
+                  },
+                  "displayName": "Invoice Amount ($)"
+                },
+                "color": {
+                  "fieldName": "legal_entity_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Legal Entity"
+                }
+              },
+              "mark": {
+                "layout": "stack"
+              },
+              "frame": {
+                "title": "Monthly Invoice Activity by Legal Entity",
+                "showTitle": true,
+                "description": "Stacked bars showing monthly invoice volume by legal entity. Identifies seasonal patterns, month-end accruals, or unusual spikes in vendor invoicing activity that may require investigation or forecast adjustments."
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 7,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "section_supplier_analysis",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Supplier Concentration & Flux Analysis\n",
+                "Quarterly supplier activity trends and concentration metrics. Monitor supplier diversity, identify dependencies on key vendors, and track supplier churn to assess supply chain risk and vendor relationship health.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_top_suppliers",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ap_top_suppliers",
+                  "fields": [
+                    {
+                      "name": "third_party_name",
+                      "expression": "`third_party_name`"
+                    },
+                    {
+                      "name": "sum(outstanding_balance)",
+                      "expression": "SUM(`outstanding_balance`)"
+                    },
+                    {
+                      "name": "sum(total_invoiced)",
+                      "expression": "SUM(`total_invoiced`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "third_party_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "axis": {
+                    "title": "Supplier"
+                  },
+                  "displayName": "Supplier Name"
+                },
+                "y": {
+                  "fieldName": "sum(outstanding_balance)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  },
+                  "axis": {
+                    "title": "Outstanding Balance ($)"
+                  },
+                  "displayName": "Outstanding Balance ($)"
+                },
+                "color": {
+                  "fieldName": "third_party_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Supplier"
+                }
+              },
+              "frame": {
+                "title": "Top Suppliers by Outstanding AP Balance (Last 180 Days)",
+                "showTitle": true,
+                "description": "Displays the suppliers with the highest outstanding balances based on the last 6 months of activity. High concentrations indicate potential payment timing risks or strategic vendor relationships requiring prioritized cash flow management."
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 14,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "pie_ap_by_legal_entity",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ap_by_legal_entity",
+                  "fields": [
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    },
+                    {
+                      "name": "sum(ap_balance)",
+                      "expression": "SUM(`ap_balance`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "sum(ap_balance)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "AP Balance ($)"
+                },
+                "color": {
+                  "fieldName": "legal_entity_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Legal Entity"
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "frame": {
+                "title": "Current AP Balance Distribution by Legal Entity",
+                "showTitle": true,
+                "description": "Proportional breakdown of current AP balances across legal entities. Helps identify which entities carry the largest payable obligations and may require targeted working capital attention or cash allocation strategies."
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 14,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "section_category_detail",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Spend Category Analysis & Quarterly Supplier Flux\n",
+                "Deep dive into AP spend by category and quarterly supplier participation trends. Quarterly flux analysis tracks the number of active suppliers per category, revealing supplier diversification, consolidation efforts, or emerging vendor dependencies.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 19,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_ap_by_category",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ap_by_category",
+                  "fields": [
+                    {
+                      "name": "category",
+                      "expression": "`category`"
+                    },
+                    {
+                      "name": "sum(total_spend)",
+                      "expression": "SUM(`total_spend`)"
+                    },
+                    {
+                      "name": "sum(supplier_count)",
+                      "expression": "SUM(`supplier_count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "category",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "axis": {
+                    "title": "Spend Category"
+                  },
+                  "displayName": "Category"
+                },
+                "y": {
+                  "fieldName": "sum(total_spend)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  },
+                  "axis": {
+                    "title": "Total Spend ($)"
+                  },
+                  "displayName": "Total Spend ($)"
+                },
+                "color": {
+                  "fieldName": "category",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Category"
+                }
+              },
+              "frame": {
+                "title": "AP Spend by Category (Last 90 Days)",
+                "showTitle": true,
+                "description": "Aggregated spend across all spend categories for the trailing 90 days. Highlights which categories drive the majority of AP obligations, enabling focused cost management and supplier negotiation strategies in high-spend areas."
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 21,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "table_supplier_flux_quarterly",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_supplier_flux_quarterly",
+                  "fields": [
+                    {
+                      "name": "quarterly(quarter)",
+                      "expression": "DATE_TRUNC(\"QUARTER\", `quarter`)"
+                    },
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    },
+                    {
+                      "name": "category",
+                      "expression": "`category`"
+                    },
+                    {
+                      "name": "sum(active_suppliers)",
+                      "expression": "SUM(`active_suppliers`)"
+                    },
+                    {
+                      "name": "sum(total_invoiced)",
+                      "expression": "SUM(`total_invoiced`)"
+                    },
+                    {
+                      "name": "avg(avg_invoice_amount)",
+                      "expression": "AVG(`avg_invoice_amount`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "quarterly(quarter)",
+                    "displayName": "Quarter",
+                    "type": "date",
+                    "displayAs": "date",
+                    "dateTimeFormat": "yyyy-MM-dd",
+                    "order": 0
+                  },
+                  {
+                    "fieldName": "legal_entity_name",
+                    "displayName": "Legal Entity",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 1
+                  },
+                  {
+                    "fieldName": "category",
+                    "displayName": "Category",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 2
+                  },
+                  {
+                    "fieldName": "sum(active_suppliers)",
+                    "displayName": "Active Suppliers",
+                    "type": "number",
+                    "displayAs": "number",
+                    "order": 3
+                  },
+                  {
+                    "fieldName": "sum(total_invoiced)",
+                    "displayName": "Total Invoiced ($)",
+                    "type": "number",
+                    "displayAs": "currency",
+                    "currencyCode": "USD",
+                    "order": 4
+                  },
+                  {
+                    "fieldName": "avg(avg_invoice_amount)",
+                    "displayName": "Avg Invoice Amount ($)",
+                    "type": "number",
+                    "displayAs": "currency",
+                    "currencyCode": "USD",
+                    "order": 5
+                  }
+                ]
+              },
+              "itemsPerPage": 20,
+              "frame": {
+                "title": "Quarterly Supplier Flux Analysis by Category",
+                "showTitle": true,
+                "description": "Quarter-over-quarter supplier participation metrics by category and legal entity. Track changes in active supplier count, invoice volumes, and average invoice sizes to identify consolidation trends, supplier diversification, or shifts in procurement patterns. Significant quarter-to-quarter changes in supplier count may indicate vendor onboarding initiatives, contract consolidation, or supply chain disruptions.",
+                "showDescription": true
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 21,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "section_detailed_transactions",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Detailed AP Activity & Outstanding Balances\n",
+                "Granular transaction-level details and supplier-specific outstanding balances. Use the filters to drill into specific suppliers, legal entities, or categories to investigate payment delays, validate invoice processing, or reconcile vendor statements.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 26,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "table_ap_aging_by_supplier",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ap_aging_by_supplier",
+                  "fields": [
+                    {
+                      "name": "third_party_name",
+                      "expression": "`third_party_name`"
+                    },
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    },
+                    {
+                      "name": "category",
+                      "expression": "`category`"
+                    },
+                    {
+                      "name": "earliest_transaction",
+                      "expression": "`earliest_transaction`"
+                    },
+                    {
+                      "name": "latest_transaction",
+                      "expression": "`latest_transaction`"
+                    },
+                    {
+                      "name": "sum(outstanding_balance)",
+                      "expression": "SUM(`outstanding_balance`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "third_party_name",
+                    "displayName": "Supplier Name",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 0
+                  },
+                  {
+                    "fieldName": "legal_entity_name",
+                    "displayName": "Legal Entity",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 1
+                  },
+                  {
+                    "fieldName": "category",
+                    "displayName": "Category",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 2
+                  },
+                  {
+                    "fieldName": "earliest_transaction",
+                    "displayName": "First Transaction",
+                    "type": "date",
+                    "displayAs": "date",
+                    "dateTimeFormat": "yyyy-MM-dd",
+                    "order": 3
+                  },
+                  {
+                    "fieldName": "latest_transaction",
+                    "displayName": "Last Transaction",
+                    "type": "date",
+                    "displayAs": "date",
+                    "dateTimeFormat": "yyyy-MM-dd",
+                    "order": 4
+                  },
+                  {
+                    "fieldName": "sum(outstanding_balance)",
+                    "displayName": "Outstanding Balance ($)",
+                    "type": "number",
+                    "displayAs": "currency",
+                    "currencyCode": "USD",
+                    "order": 5
+                  }
+                ]
+              },
+              "itemsPerPage": 20,
+              "frame": {
+                "title": "AP Aging: Outstanding Balances by Supplier",
+                "showTitle": true,
+                "description": "Lists all suppliers with outstanding AP balances, showing transaction date ranges and amounts owed. Use this table to identify aged payables, prioritize payment runs, reconcile vendor statements, or investigate potential payment exceptions. Suppliers with early first transaction dates and high outstanding balances may indicate overdue invoices requiring immediate attention.",
+                "showDescription": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 28,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "table_transactions_detail",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ap_transactions_detail",
+                  "fields": [
+                    {
+                      "name": "gl_date",
+                      "expression": "`gl_date`"
+                    },
+                    {
+                      "name": "transaction_type",
+                      "expression": "`transaction_type`"
+                    },
+                    {
+                      "name": "reference_number",
+                      "expression": "`reference_number`"
+                    },
+                    {
+                      "name": "third_party_name",
+                      "expression": "`third_party_name`"
+                    },
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    },
+                    {
+                      "name": "cost_center_name",
+                      "expression": "`cost_center_name`"
+                    },
+                    {
+                      "name": "category",
+                      "expression": "`category`"
+                    },
+                    {
+                      "name": "debit_amount",
+                      "expression": "`debit_amount`"
+                    },
+                    {
+                      "name": "credit_amount",
+                      "expression": "`credit_amount`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "gl_date",
+                    "displayName": "GL Date",
+                    "type": "date",
+                    "displayAs": "date",
+                    "dateTimeFormat": "yyyy-MM-dd",
+                    "order": 0
+                  },
+                  {
+                    "fieldName": "transaction_type",
+                    "displayName": "Transaction Type",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 1
+                  },
+                  {
+                    "fieldName": "reference_number",
+                    "displayName": "Reference Number",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 2
+                  },
+                  {
+                    "fieldName": "third_party_name",
+                    "displayName": "Supplier",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 3
+                  },
+                  {
+                    "fieldName": "legal_entity_name",
+                    "displayName": "Legal Entity",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 4
+                  },
+                  {
+                    "fieldName": "cost_center_name",
+                    "displayName": "Cost Center",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 5
+                  },
+                  {
+                    "fieldName": "category",
+                    "displayName": "Category",
+                    "type": "string",
+                    "displayAs": "string",
+                    "order": 6
+                  },
+                  {
+                    "fieldName": "debit_amount",
+                    "displayName": "Payment Amount ($)",
+                    "type": "number",
+                    "displayAs": "currency",
+                    "currencyCode": "USD",
+                    "order": 7
+                  },
+                  {
+                    "fieldName": "credit_amount",
+                    "displayName": "Invoice Amount ($)",
+                    "type": "number",
+                    "displayAs": "currency",
+                    "currencyCode": "USD",
+                    "order": 8
+                  }
+                ]
+              },
+              "itemsPerPage": 25,
+              "frame": {
+                "title": "Detailed AP Transaction Log",
+                "showTitle": true,
+                "description": "Complete audit trail of all AP transactions sorted by most recent activity. Each row represents either a supplier invoice (credit to AP) or a payment (debit to AP). Use this log for transaction research, audit support, vendor inquiry responses, or to trace specific payments and invoices through the GL.",
+                "showDescription": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 34,
+            "width": 6,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "global_filters",
+      "displayName": "Global Filters",
+      "layout": [
+        {
+          "widget": {
+            "name": "filter_date_range",
+            "queries": [
+              {
+                "name": "ds_ap_balance_quarterly_quarter",
+                "query": {
+                  "datasetName": "ds_ap_balance_quarterly",
+                  "fields": [
+                    {
+                      "name": "quarter",
+                      "expression": "`quarter`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_ap_payment_activity_monthly_month",
+                "query": {
+                  "datasetName": "ds_ap_payment_activity_monthly",
+                  "fields": [
+                    {
+                      "name": "month",
+                      "expression": "`month`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_supplier_flux_quarterly_quarter",
+                "query": {
+                  "datasetName": "ds_supplier_flux_quarterly",
+                  "fields": [
+                    {
+                      "name": "quarter",
+                      "expression": "`quarter`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_ap_transactions_detail_gl_date",
+                "query": {
+                  "datasetName": "ds_ap_transactions_detail",
+                  "fields": [
+                    {
+                      "name": "gl_date",
+                      "expression": "`gl_date`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-date-range-picker",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "quarter",
+                    "displayName": "Quarter",
+                    "queryName": "ds_ap_balance_quarterly_quarter"
+                  },
+                  {
+                    "fieldName": "month",
+                    "displayName": "Month",
+                    "queryName": "ds_ap_payment_activity_monthly_month"
+                  },
+                  {
+                    "fieldName": "quarter",
+                    "displayName": "Quarter",
+                    "queryName": "ds_supplier_flux_quarterly_quarter"
+                  },
+                  {
+                    "fieldName": "gl_date",
+                    "displayName": "GL Date",
+                    "queryName": "ds_ap_transactions_detail_gl_date"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_legal_entity",
+            "queries": [
+              {
+                "name": "ds_ap_balance_quarterly_legal_entity",
+                "query": {
+                  "datasetName": "ds_ap_balance_quarterly",
+                  "fields": [
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_ap_top_suppliers_legal_entity",
+                "query": {
+                  "datasetName": "ds_ap_top_suppliers",
+                  "fields": [
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_ap_by_category_legal_entity",
+                "query": {
+                  "datasetName": "ds_ap_by_category",
+                  "fields": [
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_supplier_flux_quarterly_legal_entity",
+                "query": {
+                  "datasetName": "ds_supplier_flux_quarterly",
+                  "fields": [
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_ap_aging_by_supplier_legal_entity",
+                "query": {
+                  "datasetName": "ds_ap_aging_by_supplier",
+                  "fields": [
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_ap_transactions_detail_legal_entity",
+                "query": {
+                  "datasetName": "ds_ap_transactions_detail",
+                  "fields": [
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "legal_entity_name",
+                    "displayName": "Legal Entity",
+                    "queryName": "ds_ap_balance_quarterly_legal_entity"
+                  },
+                  {
+                    "fieldName": "legal_entity_name",
+                    "displayName": "Legal Entity",
+                    "queryName": "ds_ap_top_suppliers_legal_entity"
+                  },
+                  {
+                    "fieldName": "legal_entity_name",
+                    "displayName": "Legal Entity",
+                    "queryName": "ds_ap_by_category_legal_entity"
+                  },
+                  {
+                    "fieldName": "legal_entity_name",
+                    "displayName": "Legal Entity",
+                    "queryName": "ds_supplier_flux_quarterly_legal_entity"
+                  },
+                  {
+                    "fieldName": "legal_entity_name",
+                    "displayName": "Legal Entity",
+                    "queryName": "ds_ap_aging_by_supplier_legal_entity"
+                  },
+                  {
+                    "fieldName": "legal_entity_name",
+                    "displayName": "Legal Entity",
+                    "queryName": "ds_ap_transactions_detail_legal_entity"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_category",
+            "queries": [
+              {
+                "name": "ds_ap_by_category_category",
+                "query": {
+                  "datasetName": "ds_ap_by_category",
+                  "fields": [
+                    {
+                      "name": "category",
+                      "expression": "`category`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_supplier_flux_quarterly_category",
+                "query": {
+                  "datasetName": "ds_supplier_flux_quarterly",
+                  "fields": [
+                    {
+                      "name": "category",
+                      "expression": "`category`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_ap_aging_by_supplier_category",
+                "query": {
+                  "datasetName": "ds_ap_aging_by_supplier",
+                  "fields": [
+                    {
+                      "name": "category",
+                      "expression": "`category`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_ap_transactions_detail_category",
+                "query": {
+                  "datasetName": "ds_ap_transactions_detail",
+                  "fields": [
+                    {
+                      "name": "category",
+                      "expression": "`category`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "category",
+                    "displayName": "Category",
+                    "queryName": "ds_ap_by_category_category"
+                  },
+                  {
+                    "fieldName": "category",
+                    "displayName": "Category",
+                    "queryName": "ds_supplier_flux_quarterly_category"
+                  },
+                  {
+                    "fieldName": "category",
+                    "displayName": "Category",
+                    "queryName": "ds_ap_aging_by_supplier_category"
+                  },
+                  {
+                    "fieldName": "category",
+                    "displayName": "Category",
+                    "queryName": "ds_ap_transactions_detail_category"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_supplier",
+            "queries": [
+              {
+                "name": "ds_ap_top_suppliers_third_party",
+                "query": {
+                  "datasetName": "ds_ap_top_suppliers",
+                  "fields": [
+                    {
+                      "name": "third_party_name",
+                      "expression": "`third_party_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_ap_aging_by_supplier_third_party",
+                "query": {
+                  "datasetName": "ds_ap_aging_by_supplier",
+                  "fields": [
+                    {
+                      "name": "third_party_name",
+                      "expression": "`third_party_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_ap_transactions_detail_third_party",
+                "query": {
+                  "datasetName": "ds_ap_transactions_detail",
+                  "fields": [
+                    {
+                      "name": "third_party_name",
+                      "expression": "`third_party_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "third_party_name",
+                    "displayName": "Supplier",
+                    "queryName": "ds_ap_top_suppliers_third_party"
+                  },
+                  {
+                    "fieldName": "third_party_name",
+                    "displayName": "Supplier",
+                    "queryName": "ds_ap_aging_by_supplier_third_party"
+                  },
+                  {
+                    "fieldName": "third_party_name",
+                    "displayName": "Supplier",
+                    "queryName": "ds_ap_transactions_detail_third_party"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 2,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    }
+  }
+}
