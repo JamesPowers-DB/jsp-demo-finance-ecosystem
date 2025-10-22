@@ -17,11 +17,7 @@
         "  ,MEASURE(forecast_accuracy) AS forecast_accuracy\n",
         "  ,MEASURE(budget_utilization) AS budget_utilization\n",
         "FROM fin_demo.plan.metrics_planning \n",
-        "WHERE fiscal_quarter_name = (\n",
-        "  SELECT MAX(fiscal_quarter_name) \n",
-        "  FROM fin_demo.plan.fact_fpa_actuals \n",
-        "  WHERE fiscal_year <= 2025\n",
-        "  )\n",
+        "WHERE fiscal_quarter_name = 'FY2025Q3'\n",
         "GROUP BY ALL"
       ]
     },
@@ -49,7 +45,17 @@
       "name": "ds_spend_vs_revenue",
       "displayName": "Spend vs Revenue Comparison",
       "queryLines": [
-        "SELECT DATE_TRUNC('MONTH', CAST(period_month AS DATE)) as month, 'Revenue' as metric_type, SUM(rev_recognized_amount) as amount FROM fin_demo.rev.fact_revenue_recognition WHERE YEAR(CAST(period_month AS DATE)) = 2025 GROUP BY DATE_TRUNC('MONTH', CAST(period_month AS DATE)) UNION ALL SELECT DATE_TRUNC('MONTH', CAST(period_month AS DATE)) as month, 'Spend' as metric_type, SUM(spend_amount) as amount FROM fin_demo.spend.fact_spend_recognition WHERE YEAR(CAST(period_month AS DATE)) = 2025 GROUP BY DATE_TRUNC('MONTH', CAST(period_month AS DATE)) ORDER BY month, metric_type"
+        "SELECT YEAR(period_month) as YEAR, QUARTER(period_month), 'Revenue' as metric_type, ROUND(SUM(rev_recognized_amount)) as amount \n",
+        "FROM fin_demo.rev.fact_revenue_recognition \n",
+        "WHERE YEAR(CAST(period_month AS DATE)) = 2025 \n",
+        "GROUP BY ALL\n",
+        "UNION ALL \n",
+        "\n",
+        "SELECT fiscal_year, fiscal_quarter, 'Spend' as metric_type, ROUND(SUM(actual_amount)) as amount \n",
+        "FROM fin_demo.plan.fact_fpa_actuals\n",
+        "WHERE fiscal_year = 2025 \n",
+        "GROUP BY ALL\n",
+        "ORDER BY 1, 2, 3"
       ]
     },
     {
@@ -63,13 +69,16 @@
       "name": "750c65bd",
       "displayName": "Data: Current Actuals",
       "queryLines": [
-        "SELECT * \n",
+        "SELECT \n",
+        "  fiscal_quarter\n",
+        "  ,fiscal_year\n",
+        "  ,fiscal_quarter_name\n",
+        "  ,SUM(actual_amount) AS total_actual\n",
+        "  ,SUM(spend_amount) AS total_spend\n",
+        "  ,SUM(salary_amount) AS total_salary\n",
         "FROM fin_demo.plan.fact_fpa_actuals\n",
-        "WHERE fiscal_quarter_name = (\n",
-        "  SELECT MAX(fiscal_quarter_name) \n",
-        "  FROM fin_demo.plan.fact_fpa_actuals \n",
-        "  WHERE fiscal_year <= 2025\n",
-        "  )"
+        "WHERE fiscal_quarter_name = 'FY2025Q3'\n",
+        "GROUP BY ALL "
       ]
     }
   ],
@@ -132,10 +141,10 @@
                 }
               },
               "frame": {
-                "title": "Current Quarter Actuals ($)",
+                "title": "Recent Full Quarter Actuals ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Sum of current quarter actual spending."
+                "description": "Sum of Recent Full quarter actual spending."
               }
             }
           },
@@ -183,10 +192,10 @@
                 }
               },
               "frame": {
-                "title": "Current Quarter Budget ($)",
+                "title": "Recent Full Quarter Budget ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Sum of current quarter budgeted amounts."
+                "description": "Sum of Recent Full quarter budgeted amounts."
               }
             }
           },
@@ -234,10 +243,10 @@
                 }
               },
               "frame": {
-                "title": "Total Forecast YTD ($)",
+                "title": "Recent Full Forecast YTD ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Sum of the current quarter forecasted amounts."
+                "description": "Sum of the Recent Full quarter forecasted amounts."
               }
             }
           },
@@ -287,7 +296,7 @@
                 "title": "Budget Variance YTD ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Variance between budget and actuals for the current quarter. Positive means under budget, negative means over. budget."
+                "description": "Variance between budget and actuals for the Recent Full quarter. Positive means under budget, negative means over. budget."
               }
             }
           },
@@ -798,7 +807,7 @@
                 "title": "Current Quarter Forecast Accuracy (%)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Accuracy between actuals and the forecast for the current quarter. < 100% means lower actuals."
+                "description": "Accuracy between actuals and the forecast for the Recent Full quarter. \nA percentage < 100% means lower actuals."
               }
             }
           },
@@ -1197,7 +1206,7 @@
           },
           "position": {
             "x": 0,
-            "y": 8,
+            "y": 5,
             "width": 6,
             "height": 2
           }
@@ -1257,17 +1266,17 @@
                 }
               },
               "frame": {
-                "title": "Current Quarter Actuals ($)",
+                "title": "Recent Full Quarter Actuals ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Sum of current quarter actual spending."
+                "description": "Sum of Recent Full Quarter actual spending."
               }
             }
           },
           "position": {
             "x": 0,
             "y": 2,
-            "width": 3,
+            "width": 2,
             "height": 3
           }
         },
@@ -1281,16 +1290,16 @@
                   "datasetName": "750c65bd",
                   "fields": [
                     {
-                      "name": "sum(actual_amount)",
-                      "expression": "SUM(`actual_amount`)"
+                      "name": "sum(total_actual)",
+                      "expression": "SUM(`total_actual`)"
                     },
                     {
-                      "name": "sum(spend_amount)",
-                      "expression": "SUM(`spend_amount`)"
+                      "name": "sum(total_spend)",
+                      "expression": "SUM(`total_spend`)"
                     },
                     {
-                      "name": "sum(salary_amount)",
-                      "expression": "SUM(`salary_amount`)"
+                      "name": "sum(total_salary)",
+                      "expression": "SUM(`total_salary`)"
                     }
                   ],
                   "disaggregated": false
@@ -1307,15 +1316,30 @@
                   },
                   "fields": [
                     {
-                      "fieldName": "sum(actual_amount)"
+                      "fieldName": "sum(total_actual)",
+                      "displayName": "Actuals"
                     },
                     {
-                      "fieldName": "sum(spend_amount)"
+                      "fieldName": "sum(total_spend)",
+                      "displayName": "Spend Ops"
                     },
                     {
-                      "fieldName": "sum(salary_amount)"
+                      "fieldName": "sum(total_salary)",
+                      "displayName": "Salary"
                     }
-                  ]
+                  ],
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  }
+                },
+                "label": {
+                  "show": true
                 }
               },
               "mark": {
@@ -1324,10 +1348,10 @@
             }
           },
           "position": {
-            "x": 3,
+            "x": 2,
             "y": 2,
-            "width": 3,
-            "height": 6
+            "width": 2,
+            "height": 3
           }
         }
       ],

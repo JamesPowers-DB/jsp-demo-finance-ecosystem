@@ -106,11 +106,11 @@ def create_fpa_actuals():
     Create FPA actuals table with typical columns for FPA actuals.
     Combines:
     1. Spend actuals from raw_spend_transactions (schema from spend_transactions.csv)
-    2. Amortized salary data from raw_emp_data (schema from emp_data.csv)
-    Aggregates by scenario (cost center, legal entity, fiscal quarter).
+    2. Pre-aggregated salary data from fact_emp_quarterly_cost
+    Joins by scenario (cost center, legal entity, fiscal quarter).
     """
 
-    # ========== PART 1: Process Spend Transactions ==========
+    # ========== PART 1: Process and Aggregate Spend Transactions ==========
     raw_spend_df = spark.table("fin_demo.spend.stg_spend_transactions")
 
     # Parse the coa_meta JSON field and convert dates
@@ -120,9 +120,7 @@ def create_fpa_actuals():
         F.col("coa_meta.legal_entity_id").alias("legal_entity_id"),
         F.col("coa_meta.legal_entity_name").alias("legal_entity_name"),
         F.col("invoice_date"),
-        F.col("invoice_amount").cast(DecimalType(18, 2)).alias("amount"),
-        F.col("amount_paid").cast(DecimalType(18, 2)).alias("amount_paid"),
-        F.lit("SPEND").alias("amount_type")
+        F.col("amount_paid").cast(DecimalType(18, 2)).alias("amount_paid")
     )
 
     # Convert Unix timestamps to dates and extract fiscal period info
@@ -140,160 +138,15 @@ def create_fpa_actuals():
     ).withColumn(
         "fiscal_quarter_name",
         F.concat(
-            F.lit("FY"), 
+            F.lit("FY"),
             F.year(F.col("transaction_date")),
-            F.lit("Q"), 
-            F.quarter(F.col("transaction_date")), 
-            )
-    )
-
-    # ========== PART 2: Process Employee Salary Data ==========
-    raw_emp_df = spark.table("fin_demo.hr.fact_emp_quarterly_cost")
-
-    # Set termination date to 24 months from hire date if not provided
-    emp_df = raw_emp_df.withColumn(
-        "hire_date_parsed",
-        F.to_date(F.col("hire_date"), "yyyy-MM-dd")
-    ).withColumn(
-        "termination_date_parsed",
-        F.coalesce(
-            F.to_date(F.col("termination_date"), "yyyy-MM-dd"),
-            F.add_months(F.to_date(F.col("hire_date"), "yyyy-MM-dd"), 24)
+            F.lit("Q"),
+            F.quarter(F.col("transaction_date"))
         )
     )
 
-    # Generate quarters from Jan 2023 through Oct 2025 for salary amortization
-    quarters_data = []
-    start_date = datetime(2023, 1, 1)
-    end_date = datetime(2025, 10, 1)
-
-    current_date = start_date
-    while current_date <= end_date:
-        year = current_date.year
-        quarter = (current_date.month - 1) // 3 + 1
-
-        # Calculate quarter start and end dates
-        quarter_start = datetime(year, (quarter - 1) * 3 + 1, 1)
-        # Calculate quarter end date
-        if quarter == 4:
-            quarter_end_day = 31
-            quarter_end_month = 12
-        else:
-            quarter_end_month = quarter * 3
-            quarter_end_day = [31, 30, 30][quarter - 1]  # Mar=31, Jun=30, Sep=30
-
-        quarter_end = datetime(year, quarter_end_month, quarter_end_day)
-
-        quarters_data.append({
-            "fiscal_year": year,
-            "fiscal_quarter": quarter,
-            "fiscal_quarter_name": f"FY{year}Q{quarter}",
-            "quarter_start_date": quarter_start.strftime("%Y-%m-%d"),
-            "quarter_end_date": quarter_end.strftime("%Y-%m-%d")
-        })
-
-        # Move to next quarter
-        month = current_date.month + 3
-        year = current_date.year
-        if month > 12:
-            month = month - 12
-            year = year + 1
-        current_date = datetime(year, month, 1)
-
-    quarters_df = spark.createDataFrame(quarters_data)
-
-    # Cross join employees with quarters
-    emp_quarters = emp_df.crossJoin(quarters_df)
-
-    # Parse quarter dates
-    emp_quarters = emp_quarters.withColumn(
-        "quarter_start_parsed",
-        F.to_date(F.col("quarter_start_date"), "yyyy-MM-dd")
-    ).withColumn(
-        "quarter_end_parsed",
-        F.to_date(F.col("quarter_end_date"), "yyyy-MM-dd")
-    )
-
-    # Filter to only include quarters where the employee was employed
-    # Include if quarter overlaps with employment period (hire_date to termination_date)
-    emp_quarters = emp_quarters.filter(
-        # Quarter start is before termination date
-        (F.col("quarter_start_parsed") < F.col("termination_date_parsed")) &
-        # Quarter end is on or after hire date
-        (F.col("quarter_end_parsed") >= F.col("hire_date_parsed"))
-    )
-
-    # Calculate quarterly salary (annual salary / 4) allocated to employee's cost center
-    salary_df = emp_quarters.withColumn(
-        "quarterly_salary",
-        (F.col("salary") / 4.0).cast(DecimalType(18, 2))
-    )
-
-    # Get cost center and legal entity name mappings from spend data
-    cost_center_names = raw_spend_df.select(
-        F.col("coa_meta.cost_center_id").alias("cc_id"),
-        F.col("coa_meta.cost_center_name").alias("cc_name")
-    ).distinct()
-
-    legal_entity_names = raw_spend_df.select(
-        F.col("coa_meta.legal_entity_id").alias("le_id"),
-        F.col("coa_meta.legal_entity_name").alias("le_name")
-    ).distinct()
-
-    # Join to get cost center and legal entity names
-    salary_df = salary_df.join(
-        cost_center_names,
-        salary_df.cost_center_id == cost_center_names.cc_id,
-        "left"
-    ).join(
-        legal_entity_names,
-        salary_df.legal_entity_id == legal_entity_names.le_id,
-        "left"
-    )
-
-    # Select relevant columns for salary actuals
-    salary_actuals = salary_df.select(
-        F.col("cost_center_id"),
-        F.coalesce(F.col("cc_name"), F.lit("Unknown")).alias("cost_center_name"),
-        F.col("legal_entity_id"),
-        F.coalesce(F.col("le_name"), F.lit("Unknown")).alias("legal_entity_name"),
-        F.col("quarter_start_parsed").alias("transaction_date"),
-        F.col("quarterly_salary").alias("amount"),
-        F.col("quarterly_salary").alias("amount_paid"),
-        F.lit("SALARY").alias("amount_type"),
-        F.col("fiscal_year"),
-        F.col("fiscal_quarter"),
-        F.col("fiscal_quarter_name")
-    )
-
-    # ========== PART 3: Combine Spend and Salary Actuals ==========
-    # Union spend and salary data
-    combined_actuals = spend_df.select(
-        "cost_center_id",
-        "cost_center_name",
-        "legal_entity_id",
-        "legal_entity_name",
-        "transaction_date",
-        "amount",
-        "amount_paid",
-        "amount_type",
-        "fiscal_year",
-        "fiscal_quarter",
-        "fiscal_quarter_name"
-    ).union(salary_actuals)
-
-    # Create scenario_key to match with dim_fpa_scenarios
-    combined_actuals = combined_actuals.withColumn(
-        "scenario_key",
-        F.concat_ws("_",
-                   F.col("cost_center_id").cast(StringType()),
-                   F.col("legal_entity_id").cast(StringType()),
-                   F.col("fiscal_quarter_name"))
-    )
-
-    # Aggregate actuals by scenario
-    actuals_agg = combined_actuals.groupBy(
-        "scenario_key",
+    # Aggregate spend transactions by scenario grain
+    spend_agg = spend_df.groupBy(
         "cost_center_id",
         "cost_center_name",
         "legal_entity_id",
@@ -302,14 +155,52 @@ def create_fpa_actuals():
         "fiscal_quarter",
         "fiscal_quarter_name"
     ).agg(
-        F.sum("amount").alias("actual_amount"),
-        F.sum(F.when(F.col("amount_type") == "SPEND", F.col("amount")).otherwise(0)).alias("spend_amount"),
-        F.sum(F.when(F.col("amount_type") == "SALARY", F.col("amount")).otherwise(0)).alias("salary_amount"),
-        F.sum("amount_paid").alias("actual_paid_amount"),
+        F.sum("amount_paid").alias("spend_amount"),
         F.count("*").alias("transaction_count"),
-        F.avg("amount").alias("avg_transaction_amount"),
+        F.avg("amount_paid").alias("avg_transaction_amount"),
         F.max("transaction_date").alias("latest_transaction_date"),
         F.min("transaction_date").alias("earliest_transaction_date")
+    )
+
+    # ========== PART 2: Read Pre-Aggregated Salary Data ==========
+    salary_df = spark.table("fin_demo.hr.fact_emp_quarterly_cost")
+
+    # Select and rename columns to match join grain
+    salary_agg = salary_df.select(
+        F.col("cost_center_id"),
+        F.col("legal_entity_id"),
+        F.col("employment_year").alias("fiscal_year"),
+        F.col("employment_quarter").alias("fiscal_quarter"),
+        F.col("agg_qtr_salary").cast(DecimalType(18, 2)).alias("salary_amount")
+    )
+
+    # ========== PART 3: Join Spend and Salary Actuals ==========
+    # Left join spend with salary on scenario grain
+    actuals_agg = spend_agg.join(
+        salary_agg,
+        on=["cost_center_id", "legal_entity_id", "fiscal_year", "fiscal_quarter"],
+        how="left"
+    )
+
+    # Calculate total actual amount and handle nulls
+    actuals_agg = actuals_agg.withColumn(
+        "salary_amount",
+        F.coalesce(F.col("salary_amount"), F.lit(0).cast(DecimalType(18, 2)))
+    ).withColumn(
+        "actual_amount",
+        (F.col("spend_amount") + F.col("salary_amount")).cast(DecimalType(18, 2))
+    ).withColumn(
+        "actual_paid_amount",
+        F.col("spend_amount")  # Only spend has paid amounts
+    )
+
+    # Create scenario_key to match with dim_fpa_scenarios
+    actuals_agg = actuals_agg.withColumn(
+        "scenario_key",
+        F.concat_ws("_",
+                   F.col("cost_center_id").cast(StringType()),
+                   F.col("legal_entity_id").cast(StringType()),
+                   F.col("fiscal_quarter_name"))
     )
 
     # Add additional typical FPA columns

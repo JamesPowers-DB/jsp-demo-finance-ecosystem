@@ -174,24 +174,12 @@ measures:
     format:
       type: number
       decimal_places:
-        type: all
+        type: exact
+        places: 2
       hide_group_separator: true
     synonyms:
       - transactions
       - transaction count
 
-  - name: avg_transaction_value
-    expr: SUM(actuals.actual_amount) / NULLIF(SUM(actuals.transaction_count), 0)
-    comment: Average value per transaction
-    display_name: Average Transaction Value
-    format:
-      type: currency
-      currency_code: USD
-      decimal_places:
-        type: exact
-        places: 2
-      hide_group_separator: false
-    synonyms:
-      - avg transaction
-      - transaction average
+
 $$
