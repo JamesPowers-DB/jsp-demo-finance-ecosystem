@@ -1,4 +1,4 @@
-ALTER VIEW metric_planning AS
+ALTER VIEW fin_demo.plan.metrics_planning AS
 $$
 version: 1.1
 source: fin_demo.plan.dim_fpa_scenarios
@@ -32,7 +32,7 @@ dimensions:
       - fy
 
   - name: fiscal_quarter
-    expr: fiscal_quarter_name
+    expr: fiscal_quarter
     comment: Fiscal quarter name for the planning period
     display_name: Fiscal Quarter
     synonyms:
@@ -67,6 +67,11 @@ dimensions:
     synonyms:
       - period start
       - start date
+    
+  - name: fiscal_quarter_name
+    expr: CONCAT('FY', fiscal_year, 'Q', fiscal_quarter)
+    comment: Readable name for fiscal year and fiscal quarter combination
+    display_name: Fiscal Quarter Name
 
 measures:
   - name: total_budget
@@ -149,7 +154,7 @@ measures:
       - forecast precision
 
   - name: budget_utilization
-    expr: (SUM(actuals.actual_amount) / NULLIF(SUM(budgets.budget_amount), 0)) 
+    expr: (SUM(actuals.actual_amount) / NULLIF(SUM(budgets.budget_amount), 0))
     comment: Percentage of budget utilized (actual/budget * 100)
     display_name: Budget Utilization
     format:

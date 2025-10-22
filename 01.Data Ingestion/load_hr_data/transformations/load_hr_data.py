@@ -38,6 +38,48 @@ def fact_employee():
         # For data story, shift the hire date back 1 year
         (to_date(from_unixtime(col("hire_date"))) - expr("INTERVAL 1 YEAR")).alias("hire_date"),
         # For data story, use the hire date as the termination date
-        to_date(from_unixtime(col("hire_date"))).alias("termination_date"),
+        (to_date(from_unixtime(col("hire_date"))) + expr("INTERVAL 1 YEAR")).alias("termination_date"),
     
     )
+
+
+@dp.table(
+    name=f"{catalog}.{schema}.fact_emp_quarterly_cost",
+)
+def fact_employee():
+    df = spark.sql("""
+        WITH base AS (
+        SELECT
+            employee_id,
+            employee_name,
+            cost_center_id,
+            legal_entity_id,
+            salary,
+            salary / 4 AS quarterly_salary,
+            year(date_add(hire_date, seq)) AS employment_year,
+            quarter(date_add(hire_date, seq)) AS employment_quarter
+        FROM fin_demo.hr.dim_employees
+        LATERAL VIEW posexplode(
+            sequence(
+            0,
+            datediff(
+                COALESCE(termination_date, current_date()),
+                hire_date
+            )
+            )
+        ) AS seq, day_offset
+        WHERE hire_date IS NOT NULL
+        GROUP BY ALL
+        ) 
+        SELECT 
+        employment_year
+        ,employment_quarter
+        ,cost_center_id
+        ,legal_entity_id
+        ,SUM(quarterly_salary) AS agg_qtr_salary
+        FROM base
+        GROUP BY ALL;
+    """
+    )
+    
+    return df

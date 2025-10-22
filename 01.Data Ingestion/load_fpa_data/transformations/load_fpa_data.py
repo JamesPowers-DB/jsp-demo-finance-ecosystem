@@ -148,7 +148,7 @@ def create_fpa_actuals():
     )
 
     # ========== PART 2: Process Employee Salary Data ==========
-    raw_emp_df = spark.table("fin_demo.hr.dim_employees")
+    raw_emp_df = spark.table("fin_demo.hr.fact_emp_quarterly_cost")
 
     # Set termination date to 24 months from hire date if not provided
     emp_df = raw_emp_df.withColumn(

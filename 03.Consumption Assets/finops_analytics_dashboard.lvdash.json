@@ -1,45 +1,48 @@
 {
   "datasets": [
     {
-      "name": "ds_kpi_actuals_ytd",
-      "displayName": "KPI: Total Actuals YTD",
+      "name": "4bd0cae7",
+      "displayName": "KPI: Current Planning Metrics",
       "queryLines": [
-        "SELECT SUM(actual_amount) as total_actuals_ytd FROM fin_demo.plan.fact_fpa_actuals WHERE fiscal_year = 2025"
-      ]
-    },
-    {
-      "name": "ds_kpi_budget_ytd",
-      "displayName": "KPI: Total Budget YTD",
-      "queryLines": [
-        "SELECT SUM(budget_amount) as total_budget_ytd FROM fin_demo.plan.fact_fpa_budgets WHERE fiscal_year = 2025"
-      ]
-    },
-    {
-      "name": "ds_kpi_forecast_ytd",
-      "displayName": "KPI: Total Forecast YTD",
-      "queryLines": [
-        "SELECT SUM(forecast_amount) as total_forecast_ytd FROM fin_demo.plan.fact_fpa_forecasts WHERE fiscal_year = 2025"
+        "SELECT \n",
+        "  fiscal_quarter\n",
+        "  ,fiscal_year\n",
+        "  ,fiscal_quarter_name\n",
+        "  ,cost_center\n",
+        "  ,legal_entity\n",
+        "  ,MEASURE(total_budget) AS total_budget \n",
+        "  ,MEASURE(total_forecast) AS total_forecast\n",
+        "  ,MEASURE(total_actual) AS total_actual\n",
+        "  ,MEASURE(budget_variance) AS total_variance\n",
+        "  ,MEASURE(forecast_accuracy) AS forecast_accuracy\n",
+        "  ,MEASURE(budget_utilization) AS budget_utilization\n",
+        "FROM fin_demo.plan.metrics_planning \n",
+        "WHERE fiscal_quarter_name = (\n",
+        "  SELECT MAX(fiscal_quarter_name) \n",
+        "  FROM fin_demo.plan.fact_fpa_actuals \n",
+        "  WHERE fiscal_year <= 2025\n",
+        "  )\n",
+        "GROUP BY ALL"
       ]
     },
     {
       "name": "ds_kpi_variance_ytd",
-      "displayName": "KPI: Budget Variance YTD",
+      "displayName": "KPI: Planning Metrics",
       "queryLines": [
-        "SELECT SUM(b.budget_amount - a.actual_amount) as budget_variance_ytd FROM fin_demo.plan.fact_fpa_budgets b INNER JOIN fin_demo.plan.fact_fpa_actuals a ON b.scenario_key = a.scenario_key WHERE b.fiscal_year = 2025"
-      ]
-    },
-    {
-      "name": "ds_planning_trends",
-      "displayName": "Budget vs Actuals vs Forecast Trending",
-      "queryLines": [
-        "SELECT fiscal_quarter_name, 'Budget' as metric_type, SUM(budget_amount) as amount FROM fin_demo.plan.fact_fpa_budgets WHERE fiscal_year = 2025 GROUP BY fiscal_quarter_name UNION ALL SELECT fiscal_quarter_name, 'Actuals' as metric_type, SUM(actual_amount) as amount FROM fin_demo.plan.fact_fpa_actuals WHERE fiscal_year = 2025 GROUP BY fiscal_quarter_name UNION ALL SELECT fiscal_quarter_name, 'Forecast' as metric_type, SUM(forecast_amount) as amount FROM fin_demo.plan.fact_fpa_forecasts WHERE fiscal_year = 2025 GROUP BY fiscal_quarter_name ORDER BY fiscal_quarter_name, metric_type"
-      ]
-    },
-    {
-      "name": "ds_variance_by_entity",
-      "displayName": "Budget Variance by Legal Entity",
-      "queryLines": [
-        "SELECT a.legal_entity_name, SUM(b.budget_amount - a.actual_amount) as variance FROM fin_demo.plan.fact_fpa_budgets b INNER JOIN fin_demo.plan.fact_fpa_actuals a ON b.scenario_key = a.scenario_key WHERE b.fiscal_year = 2025 GROUP BY a.legal_entity_name ORDER BY variance DESC"
+        "SELECT \n",
+        "  fiscal_quarter\n",
+        "  ,fiscal_year\n",
+        "  ,fiscal_quarter_name\n",
+        "  ,cost_center\n",
+        "  ,legal_entity\n",
+        "  ,MEASURE(total_budget) AS total_budget \n",
+        "  ,MEASURE(total_forecast) AS total_forecast\n",
+        "  ,MEASURE(total_actual) AS total_actual\n",
+        "  ,MEASURE(budget_variance) AS total_variance\n",
+        "  ,MEASURE(forecast_accuracy) AS forecast_accuracy\n",
+        "  ,MEASURE(budget_utilization) AS budget_utilization\n",
+        "FROM fin_demo.plan.metrics_planning \n",
+        "GROUP BY ALL"
       ]
     },
     {
@@ -50,13 +53,6 @@
       ]
     },
     {
-      "name": "ds_forecast_accuracy",
-      "displayName": "Forecast Accuracy Trending",
-      "queryLines": [
-        "SELECT f.fiscal_quarter_name, (1 - ABS(SUM(f.forecast_amount) - SUM(a.actual_amount)) / NULLIF(SUM(a.actual_amount), 0)) * 100 as accuracy_percent FROM fin_demo.plan.fact_fpa_forecasts f INNER JOIN fin_demo.plan.fact_fpa_actuals a ON f.scenario_key = a.scenario_key WHERE f.fiscal_year = 2025 GROUP BY f.fiscal_quarter_name ORDER BY f.fiscal_quarter_name"
-      ]
-    },
-    {
       "name": "ds_trial_balance_summary",
       "displayName": "Trial Balance by Account Type",
       "queryLines": [
@@ -64,31 +60,23 @@
       ]
     },
     {
-      "name": "ds_variance_by_cost_center",
-      "displayName": "Variance Detail by Cost Center",
+      "name": "750c65bd",
+      "displayName": "Data: Current Actuals",
       "queryLines": [
-        "SELECT a.cost_center_name, a.legal_entity_name, a.fiscal_quarter_name, SUM(b.budget_amount) as budget, SUM(a.actual_amount) as actual, SUM(b.budget_amount - a.actual_amount) as variance, (SUM(b.budget_amount - a.actual_amount) / NULLIF(SUM(b.budget_amount), 0)) * 100 as variance_pct FROM fin_demo.plan.fact_fpa_budgets b INNER JOIN fin_demo.plan.fact_fpa_actuals a ON b.scenario_key = a.scenario_key WHERE b.fiscal_year = 2025 GROUP BY a.cost_center_name, a.legal_entity_name, a.fiscal_quarter_name ORDER BY a.cost_center_name, a.fiscal_quarter_name"
-      ]
-    },
-    {
-      "name": "ds_committed_amounts",
-      "displayName": "Committed Revenue and Spend",
-      "queryLines": [
-        "SELECT 'Revenue' as commitment_type, SUM(contract_amortization_value) as committed_amount FROM fin_demo.rev.fact_revenue_recognition WHERE contract_amortization_value IS NOT NULL AND YEAR(CAST(period_month AS DATE)) = 2025 UNION ALL SELECT 'Spend' as commitment_type, SUM(spend_amount) as committed_amount FROM fin_demo.spend.fact_spend_recognition WHERE spend_amount IS NOT NULL AND YEAR(CAST(period_month AS DATE)) = 2025"
-      ]
-    },
-    {
-      "name": "ds_budget_utilization",
-      "displayName": "Budget Utilization by Cost Center",
-      "queryLines": [
-        "SELECT a.cost_center_name, (SUM(a.actual_amount) / NULLIF(SUM(b.budget_amount), 0)) * 100 as utilization_pct, SUM(b.budget_amount) as budget, SUM(a.actual_amount) as actual FROM fin_demo.plan.fact_fpa_budgets b INNER JOIN fin_demo.plan.fact_fpa_actuals a ON b.scenario_key = a.scenario_key WHERE b.fiscal_year = 2025 GROUP BY a.cost_center_name ORDER BY utilization_pct DESC"
+        "SELECT * \n",
+        "FROM fin_demo.plan.fact_fpa_actuals\n",
+        "WHERE fiscal_quarter_name = (\n",
+        "  SELECT MAX(fiscal_quarter_name) \n",
+        "  FROM fin_demo.plan.fact_fpa_actuals \n",
+        "  WHERE fiscal_year <= 2025\n",
+        "  )"
       ]
     }
   ],
   "pages": [
     {
       "name": "planning_analytics",
-      "displayName": "Financial Planning Analytics: Budget vs Actuals vs Forecast",
+      "displayName": "Financial Planning Analytics",
       "layout": [
         {
           "widget": {
@@ -114,11 +102,11 @@
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "ds_kpi_actuals_ytd",
+                  "datasetName": "4bd0cae7",
                   "fields": [
                     {
-                      "name": "sum(total_actuals_ytd)",
-                      "expression": "SUM(`total_actuals_ytd`)"
+                      "name": "sum(total_actual)",
+                      "expression": "SUM(`total_actual`)"
                     }
                   ],
                   "disaggregated": false
@@ -130,8 +118,7 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "sum(total_actuals_ytd)",
-                  "displayName": "Total Actuals YTD ($)",
+                  "fieldName": "sum(total_actual)",
                   "format": {
                     "type": "number-currency",
                     "currencyCode": "USD",
@@ -140,21 +127,22 @@
                       "type": "max",
                       "places": 2
                     }
-                  }
+                  },
+                  "displayName": "Total Actuals YTD ($)"
                 }
               },
               "frame": {
-                "title": "Total Actuals YTD ($)",
+                "title": "Current Quarter Actuals ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Sum of actual spending year-to-date 2025 across all cost centers and legal entities."
+                "description": "Sum of current quarter actual spending."
               }
             }
           },
           "position": {
             "x": 0,
             "y": 2,
-            "width": 1,
+            "width": 2,
             "height": 3
           }
         },
@@ -165,11 +153,11 @@
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "ds_kpi_budget_ytd",
+                  "datasetName": "4bd0cae7",
                   "fields": [
                     {
-                      "name": "sum(total_budget_ytd)",
-                      "expression": "SUM(`total_budget_ytd`)"
+                      "name": "sum(total_budget)",
+                      "expression": "SUM(`total_budget`)"
                     }
                   ],
                   "disaggregated": false
@@ -181,8 +169,7 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "sum(total_budget_ytd)",
-                  "displayName": "Total Budget YTD ($)",
+                  "fieldName": "sum(total_budget)",
                   "format": {
                     "type": "number-currency",
                     "currencyCode": "USD",
@@ -191,19 +178,20 @@
                       "type": "max",
                       "places": 2
                     }
-                  }
+                  },
+                  "displayName": "Total Budget YTD ($)"
                 }
               },
               "frame": {
-                "title": "Total Budget YTD ($)",
+                "title": "Current Quarter Budget ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Sum of budgeted amounts year-to-date 2025 across all cost centers and legal entities."
+                "description": "Sum of current quarter budgeted amounts."
               }
             }
           },
           "position": {
-            "x": 1,
+            "x": 2,
             "y": 2,
             "width": 2,
             "height": 3
@@ -216,11 +204,11 @@
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "ds_kpi_forecast_ytd",
+                  "datasetName": "4bd0cae7",
                   "fields": [
                     {
-                      "name": "sum(total_forecast_ytd)",
-                      "expression": "SUM(`total_forecast_ytd`)"
+                      "name": "sum(total_forecast)",
+                      "expression": "SUM(`total_forecast`)"
                     }
                   ],
                   "disaggregated": false
@@ -232,8 +220,7 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "sum(total_forecast_ytd)",
-                  "displayName": "Total Forecast YTD ($)",
+                  "fieldName": "sum(total_forecast)",
                   "format": {
                     "type": "number-currency",
                     "currencyCode": "USD",
@@ -242,19 +229,20 @@
                       "type": "max",
                       "places": 2
                     }
-                  }
+                  },
+                  "displayName": "Total Forecast YTD ($)"
                 }
               },
               "frame": {
                 "title": "Total Forecast YTD ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Sum of forecasted amounts year-to-date 2025 across all cost centers and legal entities."
+                "description": "Sum of the current quarter forecasted amounts."
               }
             }
           },
           "position": {
-            "x": 3,
+            "x": 4,
             "y": 2,
             "width": 2,
             "height": 3
@@ -267,11 +255,11 @@
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "ds_kpi_variance_ytd",
+                  "datasetName": "4bd0cae7",
                   "fields": [
                     {
-                      "name": "sum(budget_variance_ytd)",
-                      "expression": "SUM(`budget_variance_ytd`)"
+                      "name": "sum(total_variance)",
+                      "expression": "SUM(`total_variance`)"
                     }
                   ],
                   "disaggregated": false
@@ -283,8 +271,7 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "sum(budget_variance_ytd)",
-                  "displayName": "Budget Variance YTD ($)",
+                  "fieldName": "sum(total_variance)",
                   "format": {
                     "type": "number-currency",
                     "currencyCode": "USD",
@@ -300,15 +287,15 @@
                 "title": "Budget Variance YTD ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Variance between budget and actuals YTD 2025. Positive means under budget, negative means over budget."
+                "description": "Variance between budget and actuals for the current quarter. Positive means under budget, negative means over. budget."
               }
             }
           },
           "position": {
-            "x": 5,
-            "y": 2,
-            "width": 1,
-            "height": 3
+            "x": 0,
+            "y": 5,
+            "width": 2,
+            "height": 4
           }
         },
         {
@@ -323,7 +310,7 @@
           },
           "position": {
             "x": 0,
-            "y": 5,
+            "y": 13,
             "width": 6,
             "height": 2
           }
@@ -335,19 +322,151 @@
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "ds_planning_trends",
+                  "datasetName": "ds_kpi_variance_ytd",
                   "fields": [
                     {
                       "name": "fiscal_quarter_name",
                       "expression": "`fiscal_quarter_name`"
                     },
                     {
-                      "name": "metric_type",
-                      "expression": "`metric_type`"
+                      "name": "sum(total_budget)",
+                      "expression": "SUM(`total_budget`)"
                     },
                     {
-                      "name": "sum(amount)",
-                      "expression": "SUM(`amount`)"
+                      "name": "sum(total_forecast)",
+                      "expression": "SUM(`total_forecast`)"
+                    },
+                    {
+                      "name": "sum(total_actual)",
+                      "expression": "SUM(`total_actual`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`fiscal_quarter_name` IS NULL OR `fiscal_quarter_name` NOT IN ('FY2023Q1')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "combo",
+              "encodings": {
+                "x": {
+                  "fieldName": "fiscal_quarter_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Quarter"
+                },
+                "y": {
+                  "primary": {
+                    "fields": [
+                      {
+                        "fieldName": "sum(total_budget)",
+                        "displayName": "Budget"
+                      },
+                      {
+                        "fieldName": "sum(total_forecast)",
+                        "displayName": "Forecast"
+                      }
+                    ]
+                  },
+                  "secondary": {
+                    "fields": [
+                      {
+                        "fieldName": "sum(total_actual)",
+                        "displayName": "Actuals"
+                      }
+                    ]
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "title": "Budget vs Actuals vs Forecast by Quarter",
+                "showTitle": true,
+                "description": "Quarterly trending showing budget, actuals, and forecast amounts. Use filters to drill down by legal entity or cost center.",
+                "showDescription": true
+              },
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 1
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ],
+                "layout": "group"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 15,
+            "width": 2,
+            "height": 9
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_variance_by_entity",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_kpi_variance_ytd",
+                  "fields": [
+                    {
+                      "name": "legal_entity",
+                      "expression": "`legal_entity`"
+                    },
+                    {
+                      "name": "fiscal_quarter_name",
+                      "expression": "`fiscal_quarter_name`"
+                    },
+                    {
+                      "name": "avg(budget_utilization)",
+                      "expression": "AVG(`budget_utilization`)"
                     }
                   ],
                   "disaggregated": false
@@ -362,175 +481,95 @@
                   "fieldName": "fiscal_quarter_name",
                   "scale": {
                     "type": "categorical"
-                  },
-                  "axis": {
-                    "title": "Fiscal Quarter"
-                  },
-                  "displayName": "Quarter"
+                  }
                 },
                 "y": {
-                  "fieldName": "sum(amount)",
+                  "fieldName": "avg(budget_utilization)",
                   "scale": {
                     "type": "quantitative"
                   },
-                  "axis": {
-                    "title": "Amount ($)"
-                  },
-                  "displayName": "Amount ($)"
-                },
-                "color": {
-                  "fieldName": "metric_type",
-                  "displayName": "Metric Type (Budget/Actuals/Forecast)"
-                }
-              },
-              "frame": {
-                "title": "Budget vs Actuals vs Forecast by Quarter",
-                "showTitle": true,
-                "description": "Quarterly trending showing budget, actuals, and forecast amounts. Use filters to drill down by legal entity or cost center."
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 7,
-            "width": 3,
-            "height": 5
-          }
-        },
-        {
-          "widget": {
-            "name": "bar_variance_by_entity",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_variance_by_entity",
-                  "fields": [
-                    {
-                      "name": "legal_entity_name",
-                      "expression": "`legal_entity_name`"
-                    },
-                    {
-                      "name": "sum(variance)",
-                      "expression": "SUM(`variance`)"
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
                     }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "bar",
-              "encodings": {
-                "x": {
-                  "fieldName": "legal_entity_name",
-                  "scale": {
-                    "type": "categorical"
-                  },
-                  "axis": {
-                    "title": "Legal Entity"
-                  },
-                  "displayName": "Legal Entity"
-                },
-                "y": {
-                  "fieldName": "sum(variance)",
-                  "scale": {
-                    "type": "quantitative"
-                  },
-                  "axis": {
-                    "title": "Variance ($)"
-                  },
-                  "displayName": "Variance ($)"
+                  }
                 },
                 "color": {
-                  "fieldName": "legal_entity_name",
+                  "fieldName": "legal_entity",
                   "scale": {
                     "type": "categorical"
-                  },
-                  "displayName": "Legal Entity"
+                  }
                 }
               },
               "frame": {
                 "title": "Budget Variance by Legal Entity",
                 "showTitle": true,
-                "description": "Variance between budget and actuals by legal entity. Positive bars indicate under budget (favorable), negative bars indicate over budget (unfavorable)."
-              }
-            }
-          },
-          "position": {
-            "x": 3,
-            "y": 7,
-            "width": 3,
-            "height": 5
-          }
-        },
-        {
-          "widget": {
-            "name": "line_spend_vs_revenue",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_spend_vs_revenue",
-                  "fields": [
-                    {
-                      "name": "monthly(month)",
-                      "expression": "DATE_TRUNC(\"MONTH\", `month`)"
-                    },
-                    {
-                      "name": "metric_type",
-                      "expression": "`metric_type`"
-                    },
-                    {
-                      "name": "sum(amount)",
-                      "expression": "SUM(`amount`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "line",
-              "encodings": {
-                "x": {
-                  "fieldName": "monthly(month)",
-                  "scale": {
-                    "type": "temporal"
-                  },
-                  "axis": {
-                    "title": "Month"
-                  },
-                  "displayName": "Month"
-                },
-                "y": {
-                  "fieldName": "sum(amount)",
-                  "scale": {
-                    "type": "quantitative"
-                  },
-                  "axis": {
-                    "title": "Amount ($)"
-                  },
-                  "displayName": "Amount ($)"
-                },
-                "color": {
-                  "fieldName": "metric_type",
-                  "displayName": "Type (Revenue vs Spend)"
-                }
+                "description": "Variance between budget and actuals by legal entity. Positive bars indicate under budget (favorable), negative bars indicate over budget (unfavorable).",
+                "showDescription": true
               },
-              "frame": {
-                "title": "Spend vs Revenue Trending (Monthly)",
-                "showTitle": true,
-                "description": "Monthly comparison of recognized revenue vs supplier spend. Identify periods where spend exceeds revenue."
+              "annotations": [
+                {
+                  "type": "horizontal-line",
+                  "encodings": {
+                    "y": {
+                      "dataValue": "1",
+                      "dataType": "DECIMAL"
+                    }
+                  }
+                }
+              ],
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
               }
             }
           },
           "position": {
-            "x": 0,
-            "y": 12,
-            "width": 3,
+            "x": 2,
+            "y": 15,
+            "width": 4,
             "height": 5
           }
         },
@@ -541,15 +580,19 @@
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "ds_forecast_accuracy",
+                  "datasetName": "ds_kpi_variance_ytd",
                   "fields": [
+                    {
+                      "name": "legal_entity",
+                      "expression": "`legal_entity`"
+                    },
                     {
                       "name": "fiscal_quarter_name",
                       "expression": "`fiscal_quarter_name`"
                     },
                     {
-                      "name": "avg(accuracy_percent)",
-                      "expression": "AVG(`accuracy_percent`)"
+                      "name": "avg(forecast_accuracy)",
+                      "expression": "AVG(`forecast_accuracy`)"
                     }
                   ],
                   "disaggregated": false
@@ -571,21 +614,23 @@
                   "displayName": "Quarter"
                 },
                 "y": {
-                  "fieldName": "avg(accuracy_percent)",
+                  "fieldName": "avg(forecast_accuracy)",
                   "scale": {
                     "type": "quantitative"
                   },
                   "format": {
-                    "type": "number-percentage",
+                    "type": "number-percent",
                     "decimalPlaces": {
                       "type": "max",
-                      "places": 1
+                      "places": 0
                     }
-                  },
-                  "axis": {
-                    "title": "Accuracy (%)"
-                  },
-                  "displayName": "Accuracy (%)"
+                  }
+                },
+                "color": {
+                  "fieldName": "legal_entity",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
               },
               "frame": {
@@ -596,9 +641,9 @@
             }
           },
           "position": {
-            "x": 3,
-            "y": 12,
-            "width": 3,
+            "x": 2,
+            "y": 20,
+            "width": 4,
             "height": 5
           }
         },
@@ -614,14 +659,687 @@
           },
           "position": {
             "x": 0,
-            "y": 17,
+            "y": 25,
             "width": 6,
             "height": 2
           }
         },
         {
           "widget": {
-            "name": "bar_trial_balance",
+            "name": "table_variance_detail",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_kpi_variance_ytd",
+                  "fields": [
+                    {
+                      "name": "fiscal_quarter_name",
+                      "expression": "`fiscal_quarter_name`"
+                    },
+                    {
+                      "name": "legal_entity",
+                      "expression": "`legal_entity`"
+                    },
+                    {
+                      "name": "cost_center",
+                      "expression": "`cost_center`"
+                    },
+                    {
+                      "name": "sum(total_budget)",
+                      "expression": "SUM(`total_budget`)"
+                    },
+                    {
+                      "name": "sum(total_forecast)",
+                      "expression": "SUM(`total_forecast`)"
+                    },
+                    {
+                      "name": "sum(total_actual)",
+                      "expression": "SUM(`total_actual`)"
+                    },
+                    {
+                      "name": "avg(budget_utilization)",
+                      "expression": "AVG(`budget_utilization`)"
+                    },
+                    {
+                      "name": "avg(forecast_accuracy)",
+                      "expression": "AVG(`forecast_accuracy`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "fiscal_quarter_name"
+                  },
+                  {
+                    "fieldName": "legal_entity"
+                  },
+                  {
+                    "fieldName": "cost_center"
+                  },
+                  {
+                    "fieldName": "sum(total_budget)",
+                    "displayName": "Budget ($)"
+                  },
+                  {
+                    "fieldName": "sum(total_forecast)",
+                    "displayName": "Actual ($)"
+                  },
+                  {
+                    "fieldName": "sum(total_actual)",
+                    "displayName": "Variance ($)"
+                  },
+                  {
+                    "fieldName": "avg(budget_utilization)",
+                    "displayName": "Variance"
+                  },
+                  {
+                    "fieldName": "avg(forecast_accuracy)",
+                    "displayName": "Forecast Accuracy"
+                  }
+                ]
+              },
+              "frame": {
+                "title": "Variance Detail by Cost Center",
+                "showTitle": true,
+                "description": "Detailed variance breakdown by cost center, legal entity, and quarter. Positive variance means under budget.",
+                "showDescription": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 27,
+            "width": 6,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "263669ae",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "4bd0cae7",
+                  "fields": [
+                    {
+                      "name": "avg(forecast_accuracy)",
+                      "expression": "AVG(`forecast_accuracy`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(forecast_accuracy)",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Current Quarter Forecast Accuracy (%)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Accuracy between actuals and the forecast for the current quarter. < 100% means lower actuals."
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 2,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "0176784e",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "4bd0cae7",
+                  "fields": [
+                    {
+                      "name": "sum(total_actual)",
+                      "expression": "SUM(`total_actual`)"
+                    },
+                    {
+                      "name": "sum(total_budget)",
+                      "expression": "SUM(`total_budget`)"
+                    },
+                    {
+                      "name": "cost_center",
+                      "expression": "`cost_center`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "sum(total_actual)"
+                    },
+                    {
+                      "fieldName": "sum(total_budget)"
+                    }
+                  ]
+                },
+                "y": {
+                  "fieldName": "cost_center",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  },
+                  "displayName": "Cost Center"
+                },
+                "label": {
+                  "show": false
+                }
+              },
+              "frame": {
+                "title": "Actuals vs Budget by Cost Center",
+                "showTitle": true,
+                "showDescription": false
+              },
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 1
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ],
+                "layout": "group"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 9,
+            "width": 4,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "af76888e",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "4bd0cae7",
+                  "fields": [
+                    {
+                      "name": "sum(total_actual)",
+                      "expression": "SUM(`total_actual`)"
+                    },
+                    {
+                      "name": "sum(total_budget)",
+                      "expression": "SUM(`total_budget`)"
+                    },
+                    {
+                      "name": "legal_entity",
+                      "expression": "`legal_entity`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "sum(total_actual)"
+                    },
+                    {
+                      "fieldName": "sum(total_budget)"
+                    }
+                  ]
+                },
+                "y": {
+                  "fieldName": "legal_entity",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  },
+                  "displayName": "Legal Entity"
+                },
+                "label": {
+                  "show": false
+                }
+              },
+              "frame": {
+                "title": "Actuals vs Budget by Legal Entity",
+                "showTitle": true,
+                "showDescription": false
+              },
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 1
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ],
+                "layout": "group"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 5,
+            "width": 4,
+            "height": 4
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "global_filters",
+      "displayName": "Global Filters",
+      "layout": [
+        {
+          "widget": {
+            "name": "filter_legal_entity",
+            "queries": [
+              {
+                "name": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0aed2c3fb166b9e579fc3378dca78_legal_entity",
+                "query": {
+                  "datasetName": "ds_kpi_variance_ytd",
+                  "fields": [
+                    {
+                      "name": "legal_entity",
+                      "expression": "`legal_entity`"
+                    },
+                    {
+                      "name": "legal_entity_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0af5bb3671303a7dfbc795e98cac6_legal_entity",
+                "query": {
+                  "datasetName": "4bd0cae7",
+                  "fields": [
+                    {
+                      "name": "legal_entity",
+                      "expression": "`legal_entity`"
+                    },
+                    {
+                      "name": "legal_entity_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "legal_entity",
+                    "queryName": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0aed2c3fb166b9e579fc3378dca78_legal_entity"
+                  },
+                  {
+                    "fieldName": "legal_entity",
+                    "queryName": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0af5bb3671303a7dfbc795e98cac6_legal_entity"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "showDescription": false,
+                "title": "LEGAL ENTITY NAME"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_cost_center",
+            "queries": [
+              {
+                "name": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0af5bb3671303a7dfbc795e98cac6_cost_center",
+                "query": {
+                  "datasetName": "4bd0cae7",
+                  "fields": [
+                    {
+                      "name": "cost_center",
+                      "expression": "`cost_center`"
+                    },
+                    {
+                      "name": "cost_center_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0aed2c3fb166b9e579fc3378dca78_cost_center",
+                "query": {
+                  "datasetName": "ds_kpi_variance_ytd",
+                  "fields": [
+                    {
+                      "name": "cost_center",
+                      "expression": "`cost_center`"
+                    },
+                    {
+                      "name": "cost_center_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "cost_center",
+                    "queryName": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0af5bb3671303a7dfbc795e98cac6_cost_center"
+                  },
+                  {
+                    "fieldName": "cost_center",
+                    "queryName": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0aed2c3fb166b9e579fc3378dca78_cost_center"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "COST CENTER"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 1,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS"
+    },
+    {
+      "name": "f09a3f36",
+      "displayName": "Planning Actuals Breakdown",
+      "layout": [
+        {
+          "widget": {
+            "name": "4432bb91",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Actuals breakdown"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "f3fb48b3",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# FP&A Actuals Breakdown\n",
+                "\n",
+                "This dashboard provides a clear and concise breakdown of actual financial performance across key areas such as revenue, operating expenses, and headcount. It highlights how actuals compare to plan and forecast, helping teams quickly identify where the business is over- or under-performing."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "5a9d3d2b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "4bd0cae7",
+                  "fields": [
+                    {
+                      "name": "sum(total_actual)",
+                      "expression": "SUM(`total_actual`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_actual)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "Total Actuals YTD ($)"
+                }
+              },
+              "frame": {
+                "title": "Current Quarter Actuals ($)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Sum of current quarter actual spending."
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "071ce937",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "750c65bd",
+                  "fields": [
+                    {
+                      "name": "sum(actual_amount)",
+                      "expression": "SUM(`actual_amount`)"
+                    },
+                    {
+                      "name": "sum(spend_amount)",
+                      "expression": "SUM(`spend_amount`)"
+                    },
+                    {
+                      "name": "sum(salary_amount)",
+                      "expression": "SUM(`salary_amount`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "sum(actual_amount)"
+                    },
+                    {
+                      "fieldName": "sum(spend_amount)"
+                    },
+                    {
+                      "fieldName": "sum(salary_amount)"
+                    }
+                  ]
+                }
+              },
+              "mark": {
+                "layout": "group"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "a8ee49a7",
+      "displayName": "GL Activity",
+      "layout": [
+        {
+          "widget": {
+            "name": "987e89e3",
             "queries": [
               {
                 "name": "main_query",
@@ -682,449 +1400,13 @@
           },
           "position": {
             "x": 0,
-            "y": 19,
-            "width": 2,
-            "height": 5
-          }
-        },
-        {
-          "widget": {
-            "name": "bar_budget_utilization",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_budget_utilization",
-                  "fields": [
-                    {
-                      "name": "cost_center_name",
-                      "expression": "`cost_center_name`"
-                    },
-                    {
-                      "name": "avg(utilization_pct)",
-                      "expression": "AVG(`utilization_pct`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "bar",
-              "encodings": {
-                "x": {
-                  "fieldName": "cost_center_name",
-                  "scale": {
-                    "type": "categorical"
-                  },
-                  "axis": {
-                    "title": "Cost Center"
-                  },
-                  "displayName": "Cost Center"
-                },
-                "y": {
-                  "fieldName": "avg(utilization_pct)",
-                  "scale": {
-                    "type": "quantitative"
-                  },
-                  "format": {
-                    "type": "number-percentage",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 1
-                    }
-                  },
-                  "axis": {
-                    "title": "Utilization (%)"
-                  },
-                  "displayName": "Utilization (%)"
-                },
-                "color": {
-                  "fieldName": "cost_center_name",
-                  "scale": {
-                    "type": "categorical"
-                  },
-                  "displayName": "Cost Center"
-                }
-              },
-              "frame": {
-                "title": "Budget Utilization by Cost Center",
-                "showTitle": true,
-                "description": "Percentage of budget used by each cost center. Values over 100% indicate over-budget spending."
-              }
-            }
-          },
-          "position": {
-            "x": 2,
-            "y": 19,
-            "width": 2,
-            "height": 5
-          }
-        },
-        {
-          "widget": {
-            "name": "table_variance_detail",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_variance_by_cost_center",
-                  "fields": [
-                    {
-                      "name": "cost_center_name",
-                      "expression": "`cost_center_name`"
-                    },
-                    {
-                      "name": "legal_entity_name",
-                      "expression": "`legal_entity_name`"
-                    },
-                    {
-                      "name": "fiscal_quarter_name",
-                      "expression": "`fiscal_quarter_name`"
-                    },
-                    {
-                      "name": "sum(budget)",
-                      "expression": "SUM(`budget`)"
-                    },
-                    {
-                      "name": "sum(actual)",
-                      "expression": "SUM(`actual`)"
-                    },
-                    {
-                      "name": "sum(variance)",
-                      "expression": "SUM(`variance`)"
-                    },
-                    {
-                      "name": "avg(variance_pct)",
-                      "expression": "AVG(`variance_pct`)"
-                    }
-                  ],
-                  "disaggregated": true
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "table",
-              "encodings": {
-                "columns": [
-                  {
-                    "fieldName": "cost_center_name",
-                    "displayName": "Cost Center",
-                    "type": "string",
-                    "displayAs": "string",
-                    "order": 0
-                  },
-                  {
-                    "fieldName": "legal_entity_name",
-                    "displayName": "Legal Entity",
-                    "type": "string",
-                    "displayAs": "string",
-                    "order": 1
-                  },
-                  {
-                    "fieldName": "fiscal_quarter_name",
-                    "displayName": "Quarter",
-                    "type": "string",
-                    "displayAs": "string",
-                    "order": 2
-                  },
-                  {
-                    "fieldName": "sum(budget)",
-                    "displayName": "Budget ($)",
-                    "type": "number",
-                    "displayAs": "number",
-                    "order": 3
-                  },
-                  {
-                    "fieldName": "sum(actual)",
-                    "displayName": "Actual ($)",
-                    "type": "number",
-                    "displayAs": "number",
-                    "order": 4
-                  },
-                  {
-                    "fieldName": "sum(variance)",
-                    "displayName": "Variance ($)",
-                    "type": "number",
-                    "displayAs": "number",
-                    "order": 5
-                  },
-                  {
-                    "fieldName": "avg(variance_pct)",
-                    "displayName": "Variance %",
-                    "type": "number",
-                    "displayAs": "number",
-                    "order": 6
-                  }
-                ]
-              },
-              "itemsPerPage": 15,
-              "frame": {
-                "title": "Variance Detail by Cost Center",
-                "showTitle": true,
-                "description": "Detailed variance breakdown by cost center, legal entity, and quarter. Positive variance means under budget.",
-                "showDescription": true
-              }
-            }
-          },
-          "position": {
-            "x": 4,
-            "y": 19,
+            "y": 0,
             "width": 2,
             "height": 5
           }
         }
       ],
       "pageType": "PAGE_TYPE_CANVAS"
-    },
-    {
-      "name": "global_filters",
-      "displayName": "Global Filters",
-      "layout": [
-        {
-          "widget": {
-            "name": "filter_legal_entity",
-            "queries": [
-              {
-                "name": "ds_variance_by_entity_legal_entity",
-                "query": {
-                  "datasetName": "ds_variance_by_entity",
-                  "fields": [
-                    {
-                      "name": "legal_entity_name",
-                      "expression": "`legal_entity_name`"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "ds_variance_by_cost_center_legal_entity",
-                "query": {
-                  "datasetName": "ds_variance_by_cost_center",
-                  "fields": [
-                    {
-                      "name": "legal_entity_name",
-                      "expression": "`legal_entity_name`"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "filter-multi-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "legal_entity_name",
-                    "displayName": "Legal Entity",
-                    "queryName": "ds_variance_by_entity_legal_entity"
-                  },
-                  {
-                    "fieldName": "legal_entity_name",
-                    "displayName": "Legal Entity",
-                    "queryName": "ds_variance_by_cost_center_legal_entity"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 0,
-            "width": 2,
-            "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "filter_cost_center",
-            "queries": [
-              {
-                "name": "ds_variance_by_cost_center_cost_center",
-                "query": {
-                  "datasetName": "ds_variance_by_cost_center",
-                  "fields": [
-                    {
-                      "name": "cost_center_name",
-                      "expression": "`cost_center_name`"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "ds_budget_utilization_cost_center",
-                "query": {
-                  "datasetName": "ds_budget_utilization",
-                  "fields": [
-                    {
-                      "name": "cost_center_name",
-                      "expression": "`cost_center_name`"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "filter-multi-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "cost_center_name",
-                    "displayName": "Cost Center",
-                    "queryName": "ds_variance_by_cost_center_cost_center"
-                  },
-                  {
-                    "fieldName": "cost_center_name",
-                    "displayName": "Cost Center",
-                    "queryName": "ds_budget_utilization_cost_center"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 2,
-            "width": 2,
-            "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "filter_fiscal_quarter",
-            "queries": [
-              {
-                "name": "ds_planning_trends_quarter",
-                "query": {
-                  "datasetName": "ds_planning_trends",
-                  "fields": [
-                    {
-                      "name": "fiscal_quarter_name",
-                      "expression": "`fiscal_quarter_name`"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "ds_variance_by_cost_center_quarter",
-                "query": {
-                  "datasetName": "ds_variance_by_cost_center",
-                  "fields": [
-                    {
-                      "name": "fiscal_quarter_name",
-                      "expression": "`fiscal_quarter_name`"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "ds_forecast_accuracy_quarter",
-                "query": {
-                  "datasetName": "ds_forecast_accuracy",
-                  "fields": [
-                    {
-                      "name": "fiscal_quarter_name",
-                      "expression": "`fiscal_quarter_name`"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "filter-multi-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "fiscal_quarter_name",
-                    "displayName": "Fiscal Quarter",
-                    "queryName": "ds_planning_trends_quarter"
-                  },
-                  {
-                    "fieldName": "fiscal_quarter_name",
-                    "displayName": "Fiscal Quarter",
-                    "queryName": "ds_variance_by_cost_center_quarter"
-                  },
-                  {
-                    "fieldName": "fiscal_quarter_name",
-                    "displayName": "Fiscal Quarter",
-                    "queryName": "ds_forecast_accuracy_quarter"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 4,
-            "width": 2,
-            "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "filter_account_type",
-            "queries": [
-              {
-                "name": "ds_trial_balance_account_type",
-                "query": {
-                  "datasetName": "ds_trial_balance_summary",
-                  "fields": [
-                    {
-                      "name": "account_type",
-                      "expression": "`account_type`"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "filter-multi-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "account_type",
-                    "displayName": "Account Type",
-                    "queryName": "ds_trial_balance_account_type"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 6,
-            "width": 2,
-            "height": 2
-          }
-        }
-      ],
-      "pageType": "PAGE_TYPE_GLOBAL_FILTERS"
     }
   ],
   "uiSettings": {
