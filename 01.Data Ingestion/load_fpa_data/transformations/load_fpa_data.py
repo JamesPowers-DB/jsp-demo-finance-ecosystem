@@ -47,7 +47,7 @@ def create_fpa_scenarios():
     while current_date <= end_date:
         year = current_date.year
         quarter = (current_date.month - 1) // 3 + 1
-        fiscal_quarter = f"Q{quarter} {year}"
+        fiscal_quarter = f"FY{year}Q{quarter}"
         fiscal_year = year
         quarters_data.append({
             "fiscal_year": fiscal_year,
@@ -139,7 +139,12 @@ def create_fpa_actuals():
         F.quarter(F.col("transaction_date"))
     ).withColumn(
         "fiscal_quarter_name",
-        F.concat(F.lit("Q"), F.quarter(F.col("transaction_date")), F.lit(" "), F.year(F.col("transaction_date")))
+        F.concat(
+            F.lit("FY"), 
+            F.year(F.col("transaction_date")),
+            F.lit("Q"), 
+            F.quarter(F.col("transaction_date")), 
+            )
     )
 
     # ========== PART 2: Process Employee Salary Data ==========
@@ -182,7 +187,7 @@ def create_fpa_actuals():
         quarters_data.append({
             "fiscal_year": year,
             "fiscal_quarter": quarter,
-            "fiscal_quarter_name": f"Q{quarter} {year}",
+            "fiscal_quarter_name": f"FY{year}Q{quarter}",
             "quarter_start_date": quarter_start.strftime("%Y-%m-%d"),
             "quarter_end_date": quarter_end.strftime("%Y-%m-%d")
         })
@@ -356,7 +361,7 @@ def create_fpa_budgets():
     """
     actuals_df = spark.table("fin_demo.plan.fact_fpa_actuals")
 
-    # Generate random variance between -0.10 and 0.20 (10% lower to 20% higher)
+    # Generate random variance between -0.20 and 0.30 (20% lower to 30% higher)
     budgets_df = actuals_df.select(
         F.col("scenario_key"),
         F.col("cost_center_id"),
@@ -370,10 +375,10 @@ def create_fpa_budgets():
         F.col("currency")
     )
 
-    # Apply random variance: budget = actual * (1 + random(-0.10, 0.20))
+    # Apply random variance: budget = actual * (1 + random(-0.20, 0.30))
     budgets_df = budgets_df.withColumn(
         "variance_factor",
-        F.lit(1.0) + (F.rand() * 0.30 - 0.10)  # Random between -0.10 and 0.20
+        F.lit(1.0) + (F.rand() * 0.50 - 0.20)  # Random between -0.20 and 0.30
     ).withColumn(
         "budget_amount",
         (F.col("actual_amount") * F.col("variance_factor")).cast(DecimalType(18, 2))
@@ -435,7 +440,7 @@ def create_fpa_forecasts():
     """
     actuals_df = spark.table("fin_demo.plan.fact_fpa_actuals")
 
-    # Generate random variance between -0.20 and 0.30 (20% lower to 30% higher)
+    # Generate random variance between -0.35 and 0.50 (35% lower to 50% higher)
     forecasts_df = actuals_df.select(
         F.col("scenario_key"),
         F.col("cost_center_id"),
@@ -449,10 +454,10 @@ def create_fpa_forecasts():
         F.col("currency")
     )
 
-    # Apply random variance: forecast = actual * (1 + random(-0.20, 0.30))
+    # Apply random variance: forecast = actual * (1 + random(-0.35, 0.50))
     forecasts_df = forecasts_df.withColumn(
         "variance_factor",
-        F.lit(1.0) + (F.rand() * 0.50 - 0.20)  # Random between -0.20 and 0.30
+        F.lit(1.0) + (F.rand() * 0.85 - 0.35)  # Random between -0.35 and 0.50
     ).withColumn(
         "forecast_amount",
         (F.col("actual_amount") * F.col("variance_factor")).cast(DecimalType(18, 2))
