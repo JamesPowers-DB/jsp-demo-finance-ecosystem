@@ -42,23 +42,6 @@
       ]
     },
     {
-      "name": "ds_spend_vs_revenue",
-      "displayName": "Spend vs Revenue Comparison",
-      "queryLines": [
-        "SELECT YEAR(period_month) as YEAR, QUARTER(period_month), 'Revenue' as metric_type, ROUND(SUM(rev_recognized_amount)) as amount \n",
-        "FROM fin_demo.rev.fact_revenue_recognition \n",
-        "WHERE YEAR(CAST(period_month AS DATE)) = 2025 \n",
-        "GROUP BY ALL\n",
-        "UNION ALL \n",
-        "\n",
-        "SELECT fiscal_year, fiscal_quarter, 'Spend' as metric_type, ROUND(SUM(actual_amount)) as amount \n",
-        "FROM fin_demo.plan.fact_fpa_actuals\n",
-        "WHERE fiscal_year = 2025 \n",
-        "GROUP BY ALL\n",
-        "ORDER BY 1, 2, 3"
-      ]
-    },
-    {
       "name": "ds_trial_balance_summary",
       "displayName": "Trial Balance by Account Type",
       "queryLines": [
@@ -76,9 +59,64 @@
         "  ,SUM(actual_amount) AS total_actual\n",
         "  ,SUM(spend_amount) AS total_spend\n",
         "  ,SUM(salary_amount) AS total_salary\n",
+        "  ,SUM(salary_amount) / SUM(actual_amount) AS headcount_percentage\n",
         "FROM fin_demo.plan.fact_fpa_actuals\n",
         "WHERE fiscal_quarter_name = 'FY2025Q3'\n",
         "GROUP BY ALL "
+      ]
+    },
+    {
+      "name": "ee443030",
+      "displayName": "Data: Trending Actuals",
+      "queryLines": [
+        "SELECT \n",
+        "  fiscal_quarter\n",
+        "  ,fiscal_year\n",
+        "  ,fiscal_quarter_name\n",
+        "  ,cost_center_name\n",
+        "  ,legal_entity_name\n",
+        "  ,SUM(actual_amount) AS total_actual\n",
+        "  ,SUM(spend_amount) AS total_spend\n",
+        "  ,SUM(salary_amount) AS total_salary\n",
+        "FROM fin_demo.plan.fact_fpa_actuals\n",
+        "GROUP BY ALL "
+      ]
+    },
+    {
+      "name": "e08f3bac",
+      "displayName": "Table: stg_spend_transactions",
+      "queryLines": [
+        "SELECT\n",
+        "  --Purchase Order Data\n",
+        "  purchase_order_id\n",
+        "  ,purchase_order_amount\n",
+        "  ,supplier_name\n",
+        "  ,purchase_order_status\n",
+        "  ,DATE(FROM_UNIXTIME(purchase_order_date)) AS purchase_order_date\n",
+        "  ,YEAR(FROM_UNIXTIME(purchase_order_date)) AS purchase_year\n",
+        "  ,DATE(FROM_UNIXTIME(goods_received_date)) AS goods_received_date\n",
+        "  ,coa_meta.legal_entity_name\n",
+        "  ,coa_meta.cost_center_name\n",
+        "  \n",
+        "  --Contract Data\n",
+        "  ,contract_id IS NOT NULL AS is_spend_contracted\n",
+        "  \n",
+        "  --Invoice Data\n",
+        "  ,invoice_id\n",
+        "  ,invoice_status\n",
+        "  ,invoice_amount\n",
+        "  ,invoice_category\n",
+        "  ,tax_amount\n",
+        "  ,discount_amount\n",
+        "  ,discount_amount / invoice_amount AS discount_percentage\n",
+        "  ,(payment_date <= payment_due_date) AS is_on_time_payment\n",
+        "  ,DATE_TRUNC('quarter', FROM_UNIXTIME(invoice_date)) = DATE_TRUNC('quarter', FROM_UNIXTIME(payment_date)) AS linear_payment\n",
+        "  ,DATE(FROM_UNIXTIME(invoice_date)) AS invoice_date\n",
+        "  ,YEAR(DATE(FROM_UNIXTIME(invoice_date))) AS invoice_year\n",
+        "  ,DATE(FROM_UNIXTIME(payment_due_date)) AS payment_due_date\n",
+        "  ,DATE(FROM_UNIXTIME(payment_date)) AS payment_date\n",
+        "  \n",
+        "FROM fin_demo.spend.stg_spend_transactions\n"
       ]
     }
   ],
@@ -144,7 +182,7 @@
                 "title": "Recent Full Quarter Actuals ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Sum of Recent Full quarter actual spending."
+                "description": "Sum of Recent Full quarter (FY2025 Q3) actual spending."
               }
             }
           },
@@ -195,7 +233,7 @@
                 "title": "Recent Full Quarter Budget ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Sum of Recent Full quarter budgeted amounts."
+                "description": "Sum of Recent Full quarter (FY2025 Q3) budgeted amounts."
               }
             }
           },
@@ -246,7 +284,7 @@
                 "title": "Recent Full Forecast YTD ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Sum of the Recent Full quarter forecasted amounts."
+                "description": "Sum of the Recent Full quarter (FY2025 Q3) forecasted amounts."
               }
             }
           },
@@ -1187,6 +1225,52 @@
             "width": 1,
             "height": 2
           }
+        },
+        {
+          "widget": {
+            "name": "eb59f3d4",
+            "queries": [
+              {
+                "name": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0af962d8a1eb6aea1008062548a0c_supplier_name",
+                "query": {
+                  "datasetName": "e08f3bac",
+                  "fields": [
+                    {
+                      "name": "supplier_name",
+                      "expression": "`supplier_name`"
+                    },
+                    {
+                      "name": "supplier_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "supplier_name",
+                    "queryName": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0af962d8a1eb6aea1008062548a0c_supplier_name"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Supplier Spend"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 1,
+            "height": 2
+          }
         }
       ],
       "pageType": "PAGE_TYPE_GLOBAL_FILTERS"
@@ -1200,13 +1284,15 @@
             "name": "4432bb91",
             "multilineTextboxSpec": {
               "lines": [
-                "Actuals breakdown"
+                "## Spend Breakdown\n",
+                "\n",
+                "This view details actual spend across all suppliers, highlighting key vendors, spend categories, and period-over-period changes. It enables better oversight of procurement activity, supports cost control initiatives, and helps surface opportunities for efficiency and negotiation."
               ]
             }
           },
           "position": {
             "x": 0,
-            "y": 5,
+            "y": 10,
             "width": 6,
             "height": 2
           }
@@ -1269,14 +1355,14 @@
                 "title": "Recent Full Quarter Actuals ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Sum of Recent Full Quarter actual spending."
+                "description": "Sum of Recent Full Quarter (FY2025 Q3) actual spending."
               }
             }
           },
           "position": {
             "x": 0,
             "y": 2,
-            "width": 2,
+            "width": 3,
             "height": 3
           }
         },
@@ -1338,9 +1424,20 @@
                     }
                   }
                 },
+                "color": {
+                  "legend": {
+                    "position": "right"
+                  }
+                },
                 "label": {
                   "show": true
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Spend Breakdown",
+                "showDescription": true,
+                "description": "Recent Quarter (FY2025 Q3) Actuals Breakdown"
               },
               "mark": {
                 "layout": "group"
@@ -1348,10 +1445,632 @@
             }
           },
           "position": {
-            "x": 2,
+            "x": 3,
             "y": 2,
-            "width": 2,
+            "width": 3,
             "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "fc407b55",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ee443030",
+                  "fields": [
+                    {
+                      "name": "fiscal_quarter_name",
+                      "expression": "`fiscal_quarter_name`"
+                    },
+                    {
+                      "name": "sum(total_spend)",
+                      "expression": "SUM(`total_spend`)"
+                    },
+                    {
+                      "name": "sum(total_salary)",
+                      "expression": "SUM(`total_salary`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "combo",
+              "encodings": {
+                "x": {
+                  "fieldName": "fiscal_quarter_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "primary": {
+                    "fields": [
+                      {
+                        "fieldName": "sum(total_spend)",
+                        "displayName": "Spend Ops"
+                      },
+                      {
+                        "fieldName": "sum(total_salary)",
+                        "displayName": "Salary"
+                      }
+                    ]
+                  },
+                  "secondary": {
+                    "fields": [
+                      {
+                        "fieldName": "sum(total_spend)"
+                      }
+                    ]
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Spend Breakdown",
+                "showDescription": true,
+                "description": "Actuals spend comparing Spend Operations and Salary Headcount Costs"
+              },
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "f232eb50",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e08f3bac",
+                  "fields": [
+                    {
+                      "name": "is_spend_contracted",
+                      "expression": "`is_spend_contracted`"
+                    },
+                    {
+                      "name": "daily(purchase_order_date)",
+                      "expression": "DATE_TRUNC(\"DAY\", `purchase_order_date`)"
+                    },
+                    {
+                      "name": "sum(purchase_order_amount)",
+                      "expression": "SUM(`purchase_order_amount`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`purchase_year` IN (2025)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(purchase_order_date)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(purchase_order_amount)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "is_spend_contracted",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "frame": {
+                "title": "Trending purchase amount by purchase order date",
+                "showTitle": true
+              },
+              "annotations": [
+                {
+                  "type": "vertical-line",
+                  "encodings": {
+                    "x": {
+                      "dataValue": "2025-04-01T00:00:00.000",
+                      "dataType": "DATETIME"
+                    },
+                    "label": {
+                      "value": "Q2"
+                    }
+                  }
+                },
+                {
+                  "type": "vertical-line",
+                  "encodings": {
+                    "x": {
+                      "dataValue": "2025-07-01T00:00:00.000",
+                      "dataType": "DATETIME"
+                    },
+                    "label": {
+                      "value": "Q3"
+                    }
+                  }
+                },
+                {
+                  "type": "vertical-line",
+                  "encodings": {
+                    "x": {
+                      "dataValue": "2025-10-01T00:00:00.000",
+                      "dataType": "DATETIME"
+                    },
+                    "label": {
+                      "value": "Q4"
+                    }
+                  }
+                },
+                {
+                  "type": "vertical-line",
+                  "encodings": {
+                    "x": {
+                      "dataValue": "2025-01-01T00:00:00.000",
+                      "dataType": "DATETIME"
+                    },
+                    "label": {
+                      "value": "Q1"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "1dd71b12",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e08f3bac",
+                  "fields": [
+                    {
+                      "name": "daily(invoice_date)",
+                      "expression": "DATE_TRUNC(\"DAY\", `invoice_date`)"
+                    },
+                    {
+                      "name": "sum(invoice_amount)",
+                      "expression": "SUM(`invoice_amount`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`invoice_year` IN (2025)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(invoice_date)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(invoice_amount)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "axis": {
+                    "hideTitle": true,
+                    "hideGrid": false
+                  }
+                }
+              },
+              "frame": {
+                "title": "Trending purchase amount by purchase order date",
+                "showTitle": true
+              },
+              "annotations": [
+                {
+                  "type": "vertical-line",
+                  "encodings": {
+                    "x": {
+                      "dataValue": "2025-01-01T00:00:00.000",
+                      "dataType": "DATETIME"
+                    },
+                    "label": {
+                      "value": "Q1"
+                    }
+                  }
+                },
+                {
+                  "type": "vertical-line",
+                  "encodings": {
+                    "x": {
+                      "dataValue": "2025-04-01T00:00:00.000",
+                      "dataType": "DATETIME"
+                    },
+                    "label": {
+                      "value": "Q2"
+                    }
+                  }
+                },
+                {
+                  "type": "vertical-line",
+                  "encodings": {
+                    "x": {
+                      "dataValue": "2025-07-01T00:00:00.000",
+                      "dataType": "DATETIME"
+                    },
+                    "label": {
+                      "value": "Q3"
+                    }
+                  }
+                },
+                {
+                  "type": "vertical-line",
+                  "encodings": {
+                    "x": {
+                      "dataValue": "2025-10-01T00:00:00.000",
+                      "dataType": "DATETIME"
+                    },
+                    "label": {
+                      "value": "Q4"
+                    }
+                  }
+                }
+              ],
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 12,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "348d91e5",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e08f3bac",
+                  "fields": [
+                    {
+                      "name": "invoice_category",
+                      "expression": "`invoice_category`"
+                    },
+                    {
+                      "name": "sum(purchase_order_amount)",
+                      "expression": "SUM(`purchase_order_amount`)"
+                    },
+                    {
+                      "name": "supplier_name",
+                      "expression": "`supplier_name`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`purchase_year` IN (2025)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(purchase_order_amount)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "supplier_name",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  }
+                },
+                "color": {
+                  "fieldName": "invoice_category",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "frame": {
+                "title": "Supplier Spend Breakdown ",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 17,
+            "width": 3,
+            "height": 10
+          }
+        },
+        {
+          "widget": {
+            "name": "f7c7990f",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e08f3bac",
+                  "fields": [
+                    {
+                      "name": "supplier_name",
+                      "expression": "`supplier_name`"
+                    },
+                    {
+                      "name": "is_spend_contracted",
+                      "expression": "`is_spend_contracted`"
+                    },
+                    {
+                      "name": "sum(purchase_order_amount)",
+                      "expression": "SUM(`purchase_order_amount`)"
+                    },
+                    {
+                      "name": "sum(invoice_amount)",
+                      "expression": "SUM(`invoice_amount`)"
+                    },
+                    {
+                      "name": "sum(discount_amount)",
+                      "expression": "SUM(`discount_amount`)"
+                    },
+                    {
+                      "name": "avg(discount_percentage)",
+                      "expression": "AVG(`discount_percentage`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`purchase_year` IN (2025)"
+                    }
+                  ],
+                  "cubeGroupingSets": {
+                    "sets": [
+                      {
+                        "fieldNames": [
+                          "supplier_name"
+                        ]
+                      },
+                      {
+                        "fieldNames": [
+                          "is_spend_contracted"
+                        ]
+                      }
+                    ]
+                  },
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "ASC",
+                      "expression": "`supplier_name`"
+                    },
+                    {
+                      "direction": "ASC",
+                      "expression": "`is_spend_contracted`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pivot",
+              "encodings": {
+                "rows": [
+                  {
+                    "fieldName": "supplier_name"
+                  }
+                ],
+                "columns": [
+                  {
+                    "fieldName": "is_spend_contracted",
+                    "displayTotal": false,
+                    "displayName": "Contract Spend?"
+                  }
+                ],
+                "cell": {
+                  "type": "multi-cell",
+                  "fields": [
+                    {
+                      "fieldName": "sum(purchase_order_amount)",
+                      "cellType": "text",
+                      "format": {
+                        "type": "number-currency",
+                        "currencyCode": "USD",
+                        "abbreviation": "none",
+                        "decimalPlaces": {
+                          "type": "exact",
+                          "places": 0
+                        },
+                        "hideGroupSeparator": false
+                      },
+                      "displayName": "PO Amount"
+                    },
+                    {
+                      "fieldName": "sum(invoice_amount)",
+                      "cellType": "text",
+                      "format": {
+                        "type": "number-currency",
+                        "currencyCode": "USD",
+                        "abbreviation": "none",
+                        "decimalPlaces": {
+                          "type": "exact",
+                          "places": 0
+                        },
+                        "hideGroupSeparator": false
+                      },
+                      "displayName": "Invoice Amount"
+                    },
+                    {
+                      "fieldName": "sum(discount_amount)",
+                      "cellType": "text",
+                      "format": {
+                        "type": "number-currency",
+                        "currencyCode": "USD",
+                        "abbreviation": "none",
+                        "decimalPlaces": {
+                          "type": "exact",
+                          "places": 0
+                        },
+                        "hideGroupSeparator": false
+                      },
+                      "displayName": "Total Discounts"
+                    },
+                    {
+                      "fieldName": "avg(discount_percentage)",
+                      "cellType": "text",
+                      "format": {
+                        "type": "number-percent",
+                        "decimalPlaces": {
+                          "type": "exact",
+                          "places": 1
+                        },
+                        "hideGroupSeparator": true
+                      },
+                      "displayName": "Avg. Discount %"
+                    }
+                  ]
+                }
+              },
+              "frame": {
+                "title": "Trending purchase amount by purchase order date",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 17,
+            "width": 3,
+            "height": 10
           }
         }
       ],
@@ -1425,6 +2144,86 @@
           "position": {
             "x": 0,
             "y": 0,
+            "width": 2,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "10c439fa",
+            "multilineTextboxSpec": {
+              "lines": [
+                "On time payment calc"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 2,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "2741df20",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Flux by Vendor"
+              ]
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 5,
+            "width": 2,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "2c7602fb",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Flux by Customer"
+              ]
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 5,
+            "width": 2,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "61c96b84",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Revenue Linearity Calculation"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 2,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "4e0137fd",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Spend Linearity Calculation"
+              ]
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 10,
             "width": 2,
             "height": 5
           }
