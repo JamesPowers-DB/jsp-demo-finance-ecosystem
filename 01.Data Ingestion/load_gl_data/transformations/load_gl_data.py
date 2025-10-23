@@ -182,10 +182,11 @@ def generate_spend_invoice_entries():
     
     df_spend = spark.table("fin_demo.spend.stg_spend_transactions")
     
-    # Filter for invoiced transactions
+    # Filter for invoiced transactions (exclude cancelled invoices)
     df_invoiced = df_spend.filter(
-        (F.col("invoice_date").isNotNull()) & 
-        (F.col("total_invoice_amount") > 0)
+        (F.col("invoice_date").isNotNull()) &
+        (F.col("total_invoice_amount") > 0) &
+        (F.col("invoice_status") != "cancelled")
     )
     
     # Account mapping - 3 accounts for expense, tax, and AP
