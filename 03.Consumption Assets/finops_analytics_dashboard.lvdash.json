@@ -42,13 +42,6 @@
       ]
     },
     {
-      "name": "ds_trial_balance_summary",
-      "displayName": "Trial Balance by Account Type",
-      "queryLines": [
-        "SELECT account_type, SUM(debit_balance) as total_debit, SUM(credit_balance) as total_credit, SUM(net_balance) as net_balance FROM fin_demo.acct.fact_gl_trial_balances WHERE YEAR(CAST(as_of_date AS DATE)) = 2025 GROUP BY account_type ORDER BY account_type"
-      ]
-    },
-    {
       "name": "750c65bd",
       "displayName": "Data: Current Actuals",
       "queryLines": [
@@ -111,10 +104,12 @@
         "  ,discount_amount / invoice_amount AS discount_percentage\n",
         "  ,(payment_date <= payment_due_date) AS is_on_time_payment\n",
         "  ,DATE_TRUNC('quarter', FROM_UNIXTIME(invoice_date)) = DATE_TRUNC('quarter', FROM_UNIXTIME(payment_date)) AS linear_payment\n",
+        "  ,DATE_DIFF(DAY, FROM_UNIXTIME(invoice_date), FROM_UNIXTIME(payment_date)) AS days_to_payment\n",
         "  ,DATE(FROM_UNIXTIME(invoice_date)) AS invoice_date\n",
         "  ,YEAR(DATE(FROM_UNIXTIME(invoice_date))) AS invoice_year\n",
         "  ,DATE(FROM_UNIXTIME(payment_due_date)) AS payment_due_date\n",
         "  ,DATE(FROM_UNIXTIME(payment_date)) AS payment_date\n",
+        "  ,DATE_TRUNC('quarter', FROM_UNIXTIME(payment_date)) AS payment_quarter\n",
         "  \n",
         "FROM fin_demo.spend.stg_spend_transactions\n"
       ]
@@ -130,7 +125,9 @@
       "name": "df3fcb4a",
       "displayName": "Active Supplier Count",
       "queryLines": [
-        "SELECT COUNT(DISTINCT third_party_name) AS supplier_count FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' AND gl_date >= DATE_SUB(CURRENT_DATE(), 90)"
+        "SELECT COUNT(DISTINCT third_party_name) AS supplier_count \n",
+        "FROM fin_demo.acct.fact_gl_entries \n",
+        "WHERE account_name = 'Accounts Payable' AND gl_date >= DATE_SUB(CURRENT_DATE(), 90)"
       ]
     },
     {
@@ -141,24 +138,47 @@
       ]
     },
     {
-      "name": "3c42e0d4",
-      "displayName": "AP Transaction Count",
-      "queryLines": [
-        "SELECT COUNT(*) AS transaction_count FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' AND gl_date >= DATE_SUB(CURRENT_DATE(), 90)"
-      ]
-    },
-    {
       "name": "940a615f",
-      "displayName": "AP Balance Trend (Quarterly)",
+      "displayName": "Data: AP Balance Trend",
       "queryLines": [
-        "SELECT \n",
+        "WITH base AS (\n",
+        "  SELECT \n",
+        "    as_of_date\n",
+        "    ,legal_entity_name\n",
+        "    ,cost_center_name\n",
+        "    ,third_party_name\n",
+        "    ,SUM(credit_balance) AS ap_balance\n",
+        "  FROM fin_demo.acct.fact_gl_trial_balances \n",
+        "  WHERE account_name = 'Accounts Payable' \n",
+        "  GROUP BY ALL\n",
+        "), prep AS (\n",
+        "  SELECT \n",
+        "    as_of_date\n",
+        "    ,legal_entity_name\n",
+        "    ,cost_center_name\n",
+        "    ,third_party_name\n",
+        "    ,ap_balance\n",
+        "    ,LAG(ap_balance) OVER (\n",
+        "        PARTITION BY \n",
+        "          legal_entity_name\n",
+        "          ,cost_center_name\n",
+        "          ,third_party_name\n",
+        "        ORDER BY \n",
+        "          as_of_date \n",
+        "        ) AS prev_ap_balance\n",
+        "  FROM base\n",
+        ")\n",
+        "SELECT\n",
         "  as_of_date\n",
         "  ,legal_entity_name\n",
-        "  ,SUM(entry_count) AS transaction_volume \n",
-        "  ,SUM(credit_balance) AS ap_balance\n",
-        "FROM fin_demo.acct.fact_gl_trial_balances \n",
-        "WHERE account_name = 'Accounts Payable' \n",
-        "GROUP BY as_of_date, legal_entity_name "
+        "  ,cost_center_name\n",
+        "  ,third_party_name\n",
+        "  ,ap_balance\n",
+        "  ,prev_ap_balance\n",
+        "  ,(ap_balance - prev_ap_balance) AS flux\n",
+        "  ,(ap_balance - prev_ap_balance) / prev_ap_balance AS flux_percent\n",
+        "FROM prep\n",
+        "WHERE prev_ap_balance IS NOT NULL"
       ]
     }
   ],
@@ -1170,6 +1190,23 @@
                   ],
                   "disaggregated": false
                 }
+              },
+              {
+                "name": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0afce5107165c86112eb042ecf67d_cost_center_name",
+                "query": {
+                  "datasetName": "940a615f",
+                  "fields": [
+                    {
+                      "name": "cost_center_name",
+                      "expression": "`cost_center_name`"
+                    },
+                    {
+                      "name": "cost_center_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
               }
             ],
             "spec": {
@@ -1184,6 +1221,10 @@
                   {
                     "fieldName": "legal_entity",
                     "queryName": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0af5bb3671303a7dfbc795e98cac6_legal_entity"
+                  },
+                  {
+                    "fieldName": "cost_center_name",
+                    "queryName": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0afce5107165c86112eb042ecf67d_cost_center_name"
                   }
                 ]
               },
@@ -1238,6 +1279,23 @@
                   ],
                   "disaggregated": false
                 }
+              },
+              {
+                "name": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0afce5107165c86112eb042ecf67d_cost_center_name",
+                "query": {
+                  "datasetName": "940a615f",
+                  "fields": [
+                    {
+                      "name": "cost_center_name",
+                      "expression": "`cost_center_name`"
+                    },
+                    {
+                      "name": "cost_center_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
               }
             ],
             "spec": {
@@ -1252,6 +1310,10 @@
                   {
                     "fieldName": "cost_center",
                     "queryName": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0aed2c3fb166b9e579fc3378dca78_cost_center"
+                  },
+                  {
+                    "fieldName": "cost_center_name",
+                    "queryName": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0afce5107165c86112eb042ecf67d_cost_center_name"
                   }
                 ]
               },
@@ -1288,6 +1350,23 @@
                   ],
                   "disaggregated": false
                 }
+              },
+              {
+                "name": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0afce5107165c86112eb042ecf67d_third_party_name",
+                "query": {
+                  "datasetName": "940a615f",
+                  "fields": [
+                    {
+                      "name": "third_party_name",
+                      "expression": "`third_party_name`"
+                    },
+                    {
+                      "name": "third_party_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
               }
             ],
             "spec": {
@@ -1298,12 +1377,16 @@
                   {
                     "fieldName": "supplier_name",
                     "queryName": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0af962d8a1eb6aea1008062548a0c_supplier_name"
+                  },
+                  {
+                    "fieldName": "third_party_name",
+                    "queryName": "dashboards/01f0aed2c3fb1207b1a8aaf050a3fe33/datasets/01f0afce5107165c86112eb042ecf67d_third_party_name"
                   }
                 ]
               },
               "frame": {
                 "showTitle": true,
-                "title": "Supplier Spend"
+                "title": "THIRD PARTY NAME"
               }
             }
           },
@@ -2124,154 +2207,6 @@
       "layout": [
         {
           "widget": {
-            "name": "987e89e3",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_trial_balance_summary",
-                  "fields": [
-                    {
-                      "name": "account_type",
-                      "expression": "`account_type`"
-                    },
-                    {
-                      "name": "sum(net_balance)",
-                      "expression": "SUM(`net_balance`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "bar",
-              "encodings": {
-                "x": {
-                  "fieldName": "account_type",
-                  "scale": {
-                    "type": "categorical"
-                  },
-                  "axis": {
-                    "title": "Account Type"
-                  },
-                  "displayName": "Account Type"
-                },
-                "y": {
-                  "fieldName": "sum(net_balance)",
-                  "scale": {
-                    "type": "quantitative"
-                  },
-                  "axis": {
-                    "title": "Net Balance ($)"
-                  },
-                  "displayName": "Net Balance ($)"
-                },
-                "color": {
-                  "fieldName": "account_type",
-                  "scale": {
-                    "type": "categorical"
-                  },
-                  "displayName": "Account Type"
-                }
-              },
-              "frame": {
-                "title": "Trial Balance Summary by Account Type",
-                "showTitle": true,
-                "description": "Summary of trial balance by account type (Asset, Liability, Revenue, Expense). Shows net balance for each category."
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 12,
-            "width": 2,
-            "height": 5
-          }
-        },
-        {
-          "widget": {
-            "name": "10c439fa",
-            "multilineTextboxSpec": {
-              "lines": [
-                "On time payment calc"
-              ]
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 17,
-            "width": 2,
-            "height": 5
-          }
-        },
-        {
-          "widget": {
-            "name": "2741df20",
-            "multilineTextboxSpec": {
-              "lines": [
-                "Flux by Vendor"
-              ]
-            }
-          },
-          "position": {
-            "x": 2,
-            "y": 12,
-            "width": 2,
-            "height": 5
-          }
-        },
-        {
-          "widget": {
-            "name": "2c7602fb",
-            "multilineTextboxSpec": {
-              "lines": [
-                "Flux by Customer"
-              ]
-            }
-          },
-          "position": {
-            "x": 4,
-            "y": 13,
-            "width": 2,
-            "height": 5
-          }
-        },
-        {
-          "widget": {
-            "name": "61c96b84",
-            "multilineTextboxSpec": {
-              "lines": [
-                "Revenue Linearity Calculation"
-              ]
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 22,
-            "width": 2,
-            "height": 5
-          }
-        },
-        {
-          "widget": {
-            "name": "4e0137fd",
-            "multilineTextboxSpec": {
-              "lines": [
-                "Spend Linearity Calculation"
-              ]
-            }
-          },
-          "position": {
-            "x": 2,
-            "y": 18,
-            "width": 2,
-            "height": 5
-          }
-        },
-        {
-          "widget": {
             "name": "00e218b1",
             "multilineTextboxSpec": {
               "lines": [
@@ -2465,6 +2400,10 @@
                     {
                       "name": "sum(ap_balance)",
                       "expression": "SUM(`ap_balance`)"
+                    },
+                    {
+                      "name": "sum(flux)",
+                      "expression": "SUM(`flux`)"
                     }
                   ],
                   "disaggregated": false
@@ -2472,8 +2411,8 @@
               }
             ],
             "spec": {
-              "version": 3,
-              "widgetType": "area",
+              "version": 1,
+              "widgetType": "combo",
               "encodings": {
                 "x": {
                   "fieldName": "monthly(as_of_date)",
@@ -2482,29 +2421,96 @@
                   }
                 },
                 "y": {
-                  "fieldName": "sum(ap_balance)",
-                  "scale": {
-                    "type": "quantitative"
-                  },
-                  "format": {
-                    "type": "number-currency",
-                    "currencyCode": "USD",
-                    "abbreviation": "compact",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 0
+                  "primary": {
+                    "fields": [
+                      {
+                        "fieldName": "sum(ap_balance)",
+                        "displayName": "AP Balance ($)"
+                      }
+                    ],
+                    "scale": {
+                      "type": "quantitative"
+                    },
+                    "format": {
+                      "type": "number-currency",
+                      "currencyCode": "USD",
+                      "abbreviation": "compact",
+                      "decimalPlaces": {
+                        "type": "max",
+                        "places": 0
+                      }
                     }
                   },
-                  "axis": {
-                    "title": "AP Balance ($)"
-                  },
-                  "displayName": "AP Balance ($)"
+                  "secondary": {
+                    "fields": [
+                      {
+                        "fieldName": "sum(flux)",
+                        "displayName": "AP Flux"
+                      }
+                    ],
+                    "scale": {
+                      "type": "quantitative"
+                    },
+                    "format": {
+                      "type": "number-currency",
+                      "currencyCode": "USD",
+                      "abbreviation": "compact",
+                      "decimalPlaces": {
+                        "type": "max",
+                        "places": 0
+                      }
+                    }
+                  }
                 }
               },
               "frame": {
                 "title": "Period AP Balance Trend by Legal Entity",
                 "showTitle": true,
                 "description": "Tracks the ending AP balance for each quarter segmented by legal entity. Upward trends may signal increasing procurement activity or extended Days Payable Outstanding (DPO), while downward trends suggest improved working capital management or reduced purchasing."
+              },
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 1
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
               }
             }
           },
@@ -2540,6 +2546,9 @@
                   "filters": [
                     {
                       "expression": "`linear_payment` IS NOT NULL"
+                    },
+                    {
+                      "expression": "`invoice_year` IN (2024, 2025, 2026)"
                     }
                   ],
                   "disaggregated": false
@@ -2560,6 +2569,15 @@
                   "fieldName": "sum(invoice_amount)",
                   "scale": {
                     "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
                   }
                 },
                 "color": {
@@ -2599,6 +2617,229 @@
             "width": 3,
             "height": 5
           }
+        },
+        {
+          "widget": {
+            "name": "9a06c7b3",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Supplier Concentration & Flux Analysis\n",
+                "Quarterly supplier activity trends and concentration metrics. Monitor supplier diversity, identify dependencies on key vendors, and track supplier churn to assess supply chain risk and vendor relationship health.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 17,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "f503727f",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e08f3bac",
+                  "fields": [
+                    {
+                      "name": "monthly(payment_quarter)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `payment_quarter`)"
+                    },
+                    {
+                      "name": "min(days_to_payment)",
+                      "expression": "MIN(`days_to_payment`)"
+                    },
+                    {
+                      "name": "q1(days_to_payment)",
+                      "expression": "PERCENTILE(`days_to_payment`, 0.25)"
+                    },
+                    {
+                      "name": "median(days_to_payment)",
+                      "expression": "MEDIAN(`days_to_payment`)"
+                    },
+                    {
+                      "name": "q3(days_to_payment)",
+                      "expression": "PERCENTILE(`days_to_payment`, 0.75)"
+                    },
+                    {
+                      "name": "max(days_to_payment)",
+                      "expression": "MAX(`days_to_payment`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`invoice_year` IN (2026, 2025, 2024)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "box",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(payment_quarter)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "whiskerStart": {
+                    "fieldName": "min(days_to_payment)"
+                  },
+                  "boxStart": {
+                    "fieldName": "q1(days_to_payment)"
+                  },
+                  "boxMid": {
+                    "fieldName": "median(days_to_payment)"
+                  },
+                  "boxEnd": {
+                    "fieldName": "q3(days_to_payment)"
+                  },
+                  "whiskerEnd": {
+                    "fieldName": "max(days_to_payment)"
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Payment Cycle Time\n"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 12,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "e17125e0",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Payments directly reduce the Accounts Payable (AP) trial balance by settling outstanding liabilities. When an invoice is paid, the corresponding payable entry is cleared, decreasing total AP and improving the company’s short-term obligations position. The timing and volume of payments therefore drive linear movements in the AP balance — higher payment activity lowers the balance, while slower disbursements cause it to rise."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "b1041314",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "940a615f",
+                  "fields": [
+                    {
+                      "name": "third_party_name",
+                      "expression": "`third_party_name`"
+                    },
+                    {
+                      "name": "monthly(as_of_date)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `as_of_date`)"
+                    },
+                    {
+                      "name": "sum(flux)",
+                      "expression": "SUM(`flux`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`as_of_date` IN (DATE'2025-09-30T00:00:00.000', DATE'2025-06-30T00:00:00.000', DATE'2025-03-31T00:00:00.000', DATE'2024-12-31T00:00:00.000', DATE'2024-09-30T00:00:00.000', DATE'2025-08-31T00:00:00.000', DATE'2025-07-31T00:00:00.000')"
+                    }
+                  ],
+                  "cubeGroupingSets": {
+                    "sets": [
+                      {
+                        "fieldNames": [
+                          "third_party_name"
+                        ]
+                      },
+                      {
+                        "fieldNames": [
+                          "monthly(as_of_date)"
+                        ]
+                      }
+                    ]
+                  },
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "ASC",
+                      "expression": "`third_party_name`"
+                    },
+                    {
+                      "direction": "ASC",
+                      "expression": "DATE_TRUNC(\"MONTH\", `as_of_date`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pivot",
+              "encodings": {
+                "rows": [
+                  {
+                    "fieldName": "third_party_name"
+                  }
+                ],
+                "columns": [
+                  {
+                    "fieldName": "monthly(as_of_date)",
+                    "displayTotal": false
+                  }
+                ],
+                "cell": {
+                  "type": "multi-cell",
+                  "fields": [
+                    {
+                      "fieldName": "sum(flux)",
+                      "cellType": "text",
+                      "format": {
+                        "type": "number-currency",
+                        "currencyCode": "USD",
+                        "abbreviation": "none",
+                        "decimalPlaces": {
+                          "type": "exact",
+                          "places": 0
+                        },
+                        "hideGroupSeparator": false
+                      }
+                    }
+                  ]
+                }
+              },
+              "frame": {
+                "title": "AP balance by Third Party\n",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 19,
+            "width": 6,
+            "height": 8
+          }
         }
       ],
       "pageType": "PAGE_TYPE_CANVAS"
@@ -2607,6 +2848,9 @@
   "uiSettings": {
     "theme": {
       "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "genieSpace": {
+      "isEnabled": false
     }
   }
 }
