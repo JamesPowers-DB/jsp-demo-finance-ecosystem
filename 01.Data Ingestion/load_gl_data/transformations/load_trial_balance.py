@@ -108,7 +108,9 @@ def load_fact_gl_trial_balances():
             "legal_entity_name",
             "cost_center_id",
             "cost_center_name",
-            "category"
+            "category",
+            "third_party_id",
+            "third_party_name"
         ).agg(
             F.sum("debit_amount").alias("total_debits"),
             F.sum("credit_amount").alias("total_credits"),
@@ -152,12 +154,14 @@ def load_fact_gl_trial_balances():
             "cost_center_id",
             "cost_center_name",
             "category",
+            "third_party_id",
+            "third_party_name",
             "entry_count",
             "first_entry_date",
             "last_entry_date",
             "snapshot_timestamp"
         ) \
-        .orderBy("as_of_date", "account_number", "legal_entity_id", "cost_center_id")
+        .orderBy("as_of_date", "account_number", "legal_entity_id", "cost_center_id", "third_party_id")
     
     # Display summary
     total_rows = df_final.count()
