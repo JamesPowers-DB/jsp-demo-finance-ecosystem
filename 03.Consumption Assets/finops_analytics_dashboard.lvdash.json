@@ -118,6 +118,48 @@
         "  \n",
         "FROM fin_demo.spend.stg_spend_transactions\n"
       ]
+    },
+    {
+      "name": "4273b056",
+      "displayName": "Current AP Balance",
+      "queryLines": [
+        "SELECT SUM(credit_balance) AS total_ap_balance FROM fin_demo.acct.fact_gl_trial_balances WHERE account_name = 'Accounts Payable' AND as_of_date = (SELECT MAX(as_of_date) FROM fin_demo.acct.fact_gl_trial_balances)"
+      ]
+    },
+    {
+      "name": "df3fcb4a",
+      "displayName": "Active Supplier Count",
+      "queryLines": [
+        "SELECT COUNT(DISTINCT third_party_name) AS supplier_count FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' AND gl_date >= DATE_SUB(CURRENT_DATE(), 90)"
+      ]
+    },
+    {
+      "name": "6232aeab",
+      "displayName": "AP Payments Last 30 Days",
+      "queryLines": [
+        "SELECT SUM(debit_amount) AS total_payments FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' AND debit_amount > 0 AND gl_date >= DATE_SUB(CURRENT_DATE(), 30)"
+      ]
+    },
+    {
+      "name": "3c42e0d4",
+      "displayName": "AP Transaction Count",
+      "queryLines": [
+        "SELECT COUNT(*) AS transaction_count FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' AND gl_date >= DATE_SUB(CURRENT_DATE(), 90)"
+      ]
+    },
+    {
+      "name": "940a615f",
+      "displayName": "AP Balance Trend (Quarterly)",
+      "queryLines": [
+        "SELECT \n",
+        "  as_of_date\n",
+        "  ,legal_entity_name\n",
+        "  ,SUM(entry_count) AS transaction_volume \n",
+        "  ,SUM(credit_balance) AS ap_balance\n",
+        "FROM fin_demo.acct.fact_gl_trial_balances \n",
+        "WHERE account_name = 'Accounts Payable' \n",
+        "GROUP BY as_of_date, legal_entity_name "
+      ]
     }
   ],
   "pages": [
@@ -2143,7 +2185,7 @@
           },
           "position": {
             "x": 0,
-            "y": 0,
+            "y": 12,
             "width": 2,
             "height": 5
           }
@@ -2159,7 +2201,7 @@
           },
           "position": {
             "x": 0,
-            "y": 5,
+            "y": 17,
             "width": 2,
             "height": 5
           }
@@ -2175,7 +2217,7 @@
           },
           "position": {
             "x": 2,
-            "y": 5,
+            "y": 12,
             "width": 2,
             "height": 5
           }
@@ -2191,7 +2233,7 @@
           },
           "position": {
             "x": 4,
-            "y": 5,
+            "y": 13,
             "width": 2,
             "height": 5
           }
@@ -2207,7 +2249,7 @@
           },
           "position": {
             "x": 0,
-            "y": 10,
+            "y": 22,
             "width": 2,
             "height": 5
           }
@@ -2223,8 +2265,338 @@
           },
           "position": {
             "x": 2,
-            "y": 10,
+            "y": 18,
             "width": 2,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "00e218b1",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# Trial Balance Flux\n",
+                "\n",
+                "Comprehensive view of Accounts Payable activity including current balances, payment trends, and quarterly supplier flux analysis. This dashboard provides insights into supplier relationships, payment patterns, and outstanding obligations across all legal entities and cost centers."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "31f95522",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "4273b056",
+                  "fields": [
+                    {
+                      "name": "sum(total_ap_balance)",
+                      "expression": "SUM(`total_ap_balance`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_ap_balance)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "Current AP Balance"
+                }
+              },
+              "frame": {
+                "title": "Current AP Balance",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Total Accounts Payable balance as of the most recent trial balance date. Represents the sum of all outstanding vendor obligations across all legal entities."
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "6d870eb5",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "df3fcb4a",
+                  "fields": [
+                    {
+                      "name": "sum(supplier_count)",
+                      "expression": "SUM(`supplier_count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(supplier_count)",
+                  "displayName": "Active Suppliers (Last 90 Days)"
+                }
+              },
+              "frame": {
+                "title": "Active Suppliers (Last 90 Days)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Count of distinct suppliers with AP activity in the trailing 90-day period. Indicates breadth of vendor relationships and supply chain diversity."
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "15d18fbb",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "6232aeab",
+                  "fields": [
+                    {
+                      "name": "sum(total_payments)",
+                      "expression": "SUM(`total_payments`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_payments)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "Total Payments (Last 30 Days)"
+                }
+              },
+              "frame": {
+                "title": "Total Payments (Last 30 Days)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Sum of all AP payments made in the trailing 30-day period. Reflects recent cash outflow to suppliers and payment velocity."
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "a1001fb7",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## AP Balance Trends & Payment Activity\n",
+                "Quarterly AP balance progression and monthly payment patterns across legal entities. Rising balances may indicate extended payment terms or increased purchasing volume, while declining balances suggest accelerated payments or reduced procurement.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "76dbd061",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "940a615f",
+                  "fields": [
+                    {
+                      "name": "monthly(as_of_date)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `as_of_date`)"
+                    },
+                    {
+                      "name": "sum(ap_balance)",
+                      "expression": "SUM(`ap_balance`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "area",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(as_of_date)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(ap_balance)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  },
+                  "axis": {
+                    "title": "AP Balance ($)"
+                  },
+                  "displayName": "AP Balance ($)"
+                }
+              },
+              "frame": {
+                "title": "Period AP Balance Trend by Legal Entity",
+                "showTitle": true,
+                "description": "Tracks the ending AP balance for each quarter segmented by legal entity. Upward trends may signal increasing procurement activity or extended Days Payable Outstanding (DPO), while downward trends suggest improved working capital management or reduced purchasing."
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "96534292",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e08f3bac",
+                  "fields": [
+                    {
+                      "name": "linear_payment",
+                      "expression": "`linear_payment`"
+                    },
+                    {
+                      "name": "monthly(payment_date)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `payment_date`)"
+                    },
+                    {
+                      "name": "sum(invoice_amount)",
+                      "expression": "SUM(`invoice_amount`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`linear_payment` IS NOT NULL"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(payment_date)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(invoice_amount)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "linear_payment",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": true,
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 1
+                        }
+                      },
+                      {
+                        "value": false,
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 10
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "showDescription": true,
+                "title": "Linear Payments Analysis",
+                "description": "Analysis of payments made in same quarter invoice was issued"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 7,
+            "width": 3,
             "height": 5
           }
         }
