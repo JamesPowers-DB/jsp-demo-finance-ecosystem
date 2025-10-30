@@ -4,8 +4,8 @@ from pyspark.sql import functions as F
 from pyspark.sql.types import StringType, DecimalType, IntegerType, DateType
 from datetime import datetime
 
-catalog = 'fin_demo'
-schema = 'plan'
+catalog = 'main'
+schema = 'finance_lakehouse'
 
 
 ############################################################
@@ -18,7 +18,7 @@ schema = 'plan'
 # -- GOLD LAYER -- #
 
 @dp.table(
-    name=f"{catalog}.{schema}.dim_fpa_scenarios",
+    name=f"dim_fpa_scenarios",
     comment="Scenario dimension table with quarters from Jan 2023 through Oct 2025",
 )
 def create_fpa_scenarios():
@@ -28,7 +28,7 @@ def create_fpa_scenarios():
     Source: raw_spend_transactions table (schema from spend_transactions.csv)
     """
     # Get distinct cost centers and legal entities from the raw spend data
-    raw_df = spark.table("fin_demo.spend.stg_spend_transactions")
+    raw_df = spark.table("stg_spend_transactions")
 
     # Parse the coa_meta JSON field
     parsed_df = raw_df.select(
@@ -111,7 +111,7 @@ def create_fpa_actuals():
     """
 
     # ========== PART 1: Process and Aggregate Spend Transactions ==========
-    raw_spend_df = spark.table("fin_demo.spend.stg_spend_transactions")
+    raw_spend_df = spark.table("stg_spend_transactions")
 
     # Parse the coa_meta JSON field and convert dates
     spend_df = raw_spend_df.select(
@@ -163,7 +163,7 @@ def create_fpa_actuals():
     )
 
     # ========== PART 2: Read Pre-Aggregated Salary Data ==========
-    salary_df = spark.table("fin_demo.hr.fact_emp_quarterly_cost")
+    salary_df = spark.table("fact_emp_quarterly_cost")
 
     # Select and rename columns to match join grain
     salary_agg = salary_df.select(
@@ -242,7 +242,7 @@ def create_fpa_actuals():
     )
 
 @dp.table(
-    name="fin_demo.plan.fact_fpa_budgets",
+    name="fact_fpa_budgets",
     comment="FPA budgets fact table - budgets are between 20% higher and 10% lower than actuals",
 )
 def create_fpa_budgets():
@@ -250,7 +250,7 @@ def create_fpa_budgets():
     Create FPA budgets table with typical columns for FPA budgets.
     Budgets are generated to be between 20% higher and 10% lower than actuals for each scenario.
     """
-    actuals_df = spark.table("fin_demo.plan.fact_fpa_actuals")
+    actuals_df = spark.table("fact_fpa_actuals")
 
     # Generate random variance between -0.20 and 0.30 (20% lower to 30% higher)
     budgets_df = actuals_df.select(
@@ -321,7 +321,7 @@ def create_fpa_budgets():
     )
 
 @dp.table(
-    name="fin_demo.plan.fact_fpa_forecasts",
+    name="fact_fpa_forecasts",
     comment="FPA forecasts fact table - forecasts are between 30% higher and 20% lower than actuals",
 )
 def create_fpa_forecasts():
@@ -329,7 +329,7 @@ def create_fpa_forecasts():
     Create FPA forecasts table with typical columns for FPA forecasts.
     Forecasts are generated to be between 30% higher and 20% lower than actuals for each scenario.
     """
-    actuals_df = spark.table("fin_demo.plan.fact_fpa_actuals")
+    actuals_df = spark.table("fact_fpa_actuals")
 
     # Generate random variance between -0.35 and 0.50 (35% lower to 50% higher)
     forecasts_df = actuals_df.select(

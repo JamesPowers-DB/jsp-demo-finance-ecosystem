@@ -45,7 +45,7 @@ def get_normal_balance(account_type_col):
 
 
 @dp.table(
-    name="fin_demo.acct.fact_gl_trial_balances",
+    name="fact_gl_trial_balances",
     comment="GL entries for revenue and spend transactions",
 )
 def load_fact_gl_trial_balances():

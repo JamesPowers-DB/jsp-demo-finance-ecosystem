@@ -127,74 +127,138 @@ resources:
       tasks:
         - task_key: create_catalog_schemas
           notebook_task:
-            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/00_create_catalog
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/00.Data Generation/00_create_catalog
             source: WORKSPACE
         - task_key: run_coa_hier
           depends_on:
             - task_key: create_catalog_schemas
           notebook_task:
-            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/01_generate_coa_hierarchy
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/00.Data Generation/01_generate_coa_hierarchy
             source: WORKSPACE
         - task_key: run_employee_gen
           depends_on:
             - task_key: run_coa_hier
           notebook_task:
-            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/03_generate_employee_data
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/00.Data Generation/03_generate_employee_data
             source: WORKSPACE
         - task_key: run_third_party_gen
           depends_on:
             - task_key: run_coa_hier
           notebook_task:
-            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/02a_generate_third_parties
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/00.Data Generation/02a_generate_third_parties
             source: WORKSPACE
         - task_key: run_customer_gen
           depends_on:
             - task_key: run_third_party_gen
           notebook_task:
-            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/02b_generate_customers
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/00.Data Generation/02b_generate_customers
             source: WORKSPACE
         - task_key: run_outbound_contract_gen
           depends_on:
             - task_key: run_customer_gen
           notebook_task:
-            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/04a_generate_outbound_contracts
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/00.Data Generation/04a_generate_outbound_contracts
             source: WORKSPACE
         - task_key: run_rev_trx_gen
           depends_on:
             - task_key: run_outbound_contract_gen
           notebook_task:
-            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/04c_generate_rev_transactions
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/00.Data Generation/04c_generate_rev_transactions
             source: WORKSPACE
         - task_key: run_rev_bill_gen
           depends_on:
             - task_key: run_rev_trx_gen
           notebook_task:
-            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/04d_generate_revenue_billing
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/00.Data Generation/04d_generate_revenue_billing
             source: WORKSPACE
         - task_key: run_supplier_gen
           depends_on:
             - task_key: run_third_party_gen
           notebook_task:
-            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/02c_generate_suppliers
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/00.Data Generation/02c_generate_suppliers
             source: WORKSPACE
         - task_key: run_inbound_contract_gen
           depends_on:
             - task_key: run_supplier_gen
           notebook_task:
-            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/05a_generate_inbound_contracts
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/00.Data Generation/05a_generate_inbound_contracts
             source: WORKSPACE
         - task_key: run_purchase_gen
           depends_on:
             - task_key: run_inbound_contract_gen
           notebook_task:
-            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/05b_generate_purchase_orders
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/00.Data Generation/05b_generate_purchase_orders
             source: WORKSPACE
         - task_key: run_spend_invoice_gen
           depends_on:
             - task_key: run_purchase_gen
           notebook_task:
-            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/05c_generate_spend_invoices
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/00.Data Generation/05c_generate_spend_invoices
             source: WORKSPACE
+      queue:
+        enabled: true
+      performance_target: PERFORMANCE_OPTIMIZED
+
+
+    build_finance_lakehouse:
+      name: build_finance_lakehouse
+      tasks:
+        - task_key: gen_fin_demo_cat_schema
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/00_create_schemas
+            source: WORKSPACE
+        - task_key: load_accounting_datasets
+          depends_on:
+            - task_key: gen_fin_demo_cat_schema
+          pipeline_task:
+            pipeline_id: load_accounting_data
+            full_refresh: false
+        - task_key: load_hr_datasets
+          depends_on:
+            - task_key: load_accounting_datasets
+          pipeline_task:
+            pipeline_id: load_hr_data
+            full_refresh: false
+        - task_key: load_legal_datasets
+          depends_on:
+            - task_key: load_hr_datasets
+          pipeline_task:
+            pipeline_id: load_legal_data
+            full_refresh: false
+        - task_key: load_purchasing_datasets
+          depends_on:
+            - task_key: load_accounting_datasets
+            - task_key: load_legal_datasets
+          pipeline_task:
+            pipeline_id: load_purchasing_data
+            full_refresh: false
+        - task_key: load_revenue_datasets
+          depends_on:
+            - task_key: load_accounting_datasets
+            - task_key: load_legal_datasets
+          pipeline_task:
+            pipeline_id: load_revenue_data
+            full_refresh: false
+        - task_key: load_gl_datasets
+          depends_on:
+            - task_key: load_purchasing_datasets
+            - task_key: load_revenue_datasets
+          pipeline_task:
+            pipeline_id: load_gl_data
+            full_refresh: false
+        - task_key: load_third_party_datasets
+          depends_on:
+            - task_key: gen_fin_demo_cat_schema
+          pipeline_task:
+            pipeline_id: load_third_party_data
+            full_refresh: false
+        - task_key: load_fpa_datasets
+          depends_on:
+            - task_key: load_hr_datasets
+            - task_key: load_purchasing_datasets
+          pipeline_task:
+            pipeline_id: load_fpa_data
+            full_refresh: false
       queue:
         enabled: true
       performance_target: PERFORMANCE_OPTIMIZED

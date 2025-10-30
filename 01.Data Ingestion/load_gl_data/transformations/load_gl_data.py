@@ -10,7 +10,7 @@ from datetime import datetime
 
 # Optionally save as a reference table
 @dp.table(
-    name=f"fin_demo.acct.dim_gl_accounts",
+    name=f"dim_gl_accounts",
     comment="Reference table for the Chart of Accounts",
 )
 def load_chart_of_accounts():
@@ -37,14 +37,14 @@ def load_chart_of_accounts():
 # ============================================================================
 
 @dp.table(
-    name=f"fin_demo.acct.stg_revenue_invoice_entries",
+    name=f"stg_revenue_invoice_entries",
     comment="Revenue GL entries for customer invoices"
 )
 def generate_revenue_invoice_entries():
     """Generate GL entries for customer invoices (Invoice Recognition)"""
     
     # Read revenue transactions
-    df_rev = spark.table("fin_demo.rev.stg_revenue_transactions")
+    df_rev = spark.table("stg_revenue_transactions")
     
     # Filter for invoiced transactions
     df_invoiced = df_rev.filter(
@@ -106,13 +106,13 @@ def generate_revenue_invoice_entries():
 # ============================================================================
 
 @dp.table(
-    name=f"fin_demo.acct.stg_revenue_payment_entries",
+    name=f"stg_revenue_payment_entries",
     comment="Revenue GL entries for customer invoices"
 )
 def generate_revenue_payment_entries():
     """Generate GL entries for customer payments (Payment Receipt)"""
     
-    df_rev = spark.table("fin_demo.rev.stg_revenue_transactions")
+    df_rev = spark.table("stg_revenue_transactions")
     
     # Filter for paid transactions
     df_paid = df_rev.filter(
@@ -174,13 +174,13 @@ def generate_revenue_payment_entries():
 # ============================================================================
 
 @dp.table(
-    name=f"fin_demo.acct.stg_spend_invoice_entries",
+    name=f"stg_spend_invoice_entries",
     comment="Spend GL entries for supplier invoices",
 ) 
 def generate_spend_invoice_entries():
     """Generate GL entries for supplier invoices (Invoice Recognition)"""
     
-    df_spend = spark.table("fin_demo.spend.stg_spend_transactions")
+    df_spend = spark.table("stg_spend_transactions")
     
     # Filter for invoiced transactions (exclude cancelled invoices)
     df_invoiced = df_spend.filter(
@@ -244,13 +244,13 @@ def generate_spend_invoice_entries():
 # ============================================================================
 
 @dp.table(
-    name=f"fin_demo.acct.stg_spend_payment_entries",
+    name=f"stg_spend_payment_entries",
     comment="Spend GL entries for supplier payments",
 ) 
 def generate_spend_payment_entries():
     """Generate GL entries for supplier payments (Payment Made)"""
     
-    df_spend = spark.table("fin_demo.spend.stg_spend_transactions")
+    df_spend = spark.table("stg_spend_transactions")
     
     # Filter for paid transactions
     df_paid = df_spend.filter(
@@ -305,15 +305,15 @@ def generate_spend_payment_entries():
 # ============================================================================
 
 @dp.table(
-    name="fin_demo.acct.fact_gl_entries",
+    name="fact_gl_entries",
     comment="GL entries for revenue and spend transactions",
 )
 def load_fact_gl_entries():
        
-    df_rev_invoice = spark.table("fin_demo.acct.stg_revenue_invoice_entries")
-    df_rev_payment = spark.table("fin_demo.acct.stg_revenue_payment_entries")
-    df_spend_invoice = spark.table("fin_demo.acct.stg_spend_invoice_entries")
-    df_spend_payment = spark.table("fin_demo.acct.stg_spend_payment_entries")
+    df_rev_invoice = spark.table("stg_revenue_invoice_entries")
+    df_rev_payment = spark.table("stg_revenue_payment_entries")
+    df_spend_invoice = spark.table("stg_spend_invoice_entries")
+    df_spend_payment = spark.table("stg_spend_payment_entries")
 
     # Union all GL entry DataFrames
     df_gl_all = df_rev_invoice \

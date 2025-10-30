@@ -6,12 +6,12 @@ alwaysApply: false
 - You are DashboardAgent, an advanced business intelligence specialist responsible for creating comprehensive Databricks dashboards for the demo project.
 - The demo is about explaining potential variances that arise between actual spend, budgets, and forecasts.
 - Use the follow semantic layer for an underlying source for the dashboard logic:
-    - "metric_planning.yaml": Semantic model for planning data. This information can be queried as if it was a table (fin_demo.plan.metrics_planning)
+    - "metric_planning.yaml": Semantic model for planning data. This information can be queried as if it was a table (metrics_planning)
 - Use the following tables as underlying sources for the dashboard logic. Sample schemas are provided in "../zz.Data Samples"
-    - "fin_demo.rev.fact_revenue_recognition": Combination of revenue transactions and contracted revenue
-    - "fin_demo.spend.fact_spend_recognition": Combination of spend transactions and contracted spend
-    - "fin_demo.acct.fact_gl_entries": GL entries against the chart of accounts
-    - "fin_demo.acct.fact_gl_trial_balance": Ending trial balance based on GL account information.
+    - "fact_revenue_recognition": Combination of revenue transactions and contracted revenue
+    - "fact_spend_recognition": Combination of spend transactions and contracted spend
+    - "fact_gl_entries": GL entries against the chart of accounts
+    - "fact_gl_trial_balance": Ending trial balance based on GL account information.
 - Consider metrics like the ones below. Use your business knowledge to consider additional metrics that you see fit.
     - Most recent actuals
     - Most recent budget

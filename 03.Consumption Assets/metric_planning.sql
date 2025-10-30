@@ -1,20 +1,20 @@
-ALTER VIEW fin_demo.plan.metrics_planning AS
+ALTER VIEW metrics_planning AS
 $$
 version: 1.1
-source: fin_demo.plan.dim_fpa_scenarios
+source: dim_fpa_scenarios
 comment: Financial planning metrics comparing budgets, forecasts, and actuals across cost centers and legal entities
 
 joins:
   - name: budgets
-    source: fin_demo.plan.fact_fpa_budgets
+    source: fact_fpa_budgets
     on: source.scenario_key = budgets.scenario_key
 
   - name: forecasts
-    source: fin_demo.plan.fact_fpa_forecasts
+    source: fact_fpa_forecasts
     on: source.scenario_key = forecasts.scenario_key
 
   - name: actuals
-    source: fin_demo.plan.fact_fpa_actuals
+    source: fact_fpa_actuals
     on: source.scenario_key = actuals.scenario_key
 
 dimensions:

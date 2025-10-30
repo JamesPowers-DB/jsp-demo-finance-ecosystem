@@ -58,7 +58,7 @@ def fact_employee():
             salary / 4 AS quarterly_salary,
             year(date_add(hire_date, seq)) AS employment_year,
             quarter(date_add(hire_date, seq)) AS employment_quarter
-        FROM fin_demo.hr.dim_employees
+        FROM dim_employees
         LATERAL VIEW posexplode(
             sequence(
             0,

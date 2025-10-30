@@ -175,7 +175,7 @@ def load_stg_revenue_transcations():
     comment="Amortizes total_contract_value by month between contract_start_date and estimated_completion_date, including all contract dimensions."
 )
 def load_stg_commit_revenue():
-    contracts = spark.read.table("fin_demo.legal.dim_all_contracts").filter(col("agreement_type") == "Outbound")
+    contracts = spark.read.table("dim_all_contracts").filter(col("agreement_type") == "Outbound")
     contracts = contracts.withColumn(
         "start_date", col("contract_start_date").cast("date")
     ).withColumn(
@@ -259,7 +259,7 @@ def fact_revenue_recognition():
             rev_trx.rev_linear_payments,
             rev_trx.rev_nonlinear_payments
 
-        FROM fin_demo.rev.stg_commit_revenue AS commit
+        FROM stg_commit_revenue AS commit
         FULL JOIN (
             SELECT
                 contract_id
@@ -280,7 +280,7 @@ def fact_revenue_recognition():
                 ,SUM(billed_amount) FILTER (WHERE payment_received_date IS NOT NULL) AS rev_received_amount
                 ,SUM(amount) FILTER (WHERE DATE_TRUNC(transaction_date, 'month') = DATE_TRUNC(payment_received_date, 'month')) AS rev_linear_payments
                 ,SUM(amount) FILTER (WHERE DATE_TRUNC(transaction_date, 'month') < DATE_TRUNC(payment_received_date, 'month')) AS rev_nonlinear_payments
-            FROM fin_demo.rev.stg_revenue_transactions
+            FROM stg_revenue_transactions
             GROUP BY 1, 2, 3, 4, 5, 6
 
             ) AS rev_trx
