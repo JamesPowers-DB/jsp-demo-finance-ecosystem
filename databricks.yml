@@ -7,6 +7,49 @@ include:
   - resources/*.yml
   - resources/*/*.yml
 
+resources:
+  pipelines:
+    load_accounting_data:
+        name: load_accounting_data
+        libraries:
+          - file:
+              path: "./01.Data Ingestion/transformations" 
+    load_fpa_data:
+        name: load_fpa_data
+        libraries:
+          - file:
+              path: "./01.Data Ingestion/transformations" 
+    load_gl_data:
+        name: load_gl_data
+        libraries:
+          - file:
+              path: "./01.Data Ingestion/transformations" 
+    load_hr_data:
+        name: load_hr_data
+        libraries:
+          - file:
+              path: "./01.Data Ingestion/transformations" 
+    load_legal_data:
+        name: load_legal_data
+        libraries:
+          - file:
+              path: "./01.Data Ingestion/transformations" 
+    load_purchasing_data:
+        name: load_purchasing_data
+        libraries:
+          - file:
+              path: "./01.Data Ingestion/transformations" 
+    load_revenue_data:
+        name: load_revenue_data
+        libraries:
+          - file:
+              path: "./01.Data Ingestion/transformations" 
+    load_third_party_data:
+        name: load_third_party_data
+        libraries:
+          - file:
+              path: "./01.Data Ingestion/transformations" 
+
 targets:
   # The 'dev' target, for development purposes. This target is the default.
   dev:
