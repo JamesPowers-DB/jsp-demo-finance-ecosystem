@@ -274,9 +274,9 @@ def create_fpa_budgets():
 
     # Determine if this is the current quarter
     budgets_df = budgets_df.withColumn(
-        "is_current_quarter",
-        (F.col("fiscal_year") == F.col("current_year")) &
-        (F.col("fiscal_quarter") == F.col("current_quarter"))
+        "is_future_quarter",
+        ((F.col("fiscal_year") == F.col("current_year")) & (F.col("fiscal_quarter") == F.col("current_quarter"))) 
+        | (F.col("fiscal_year") > F.col("current_year"))
     )
 
     # Calculate quarter start and end dates for percent complete calculation
@@ -312,9 +312,15 @@ def create_fpa_budgets():
     )
 
     # For past quarters: apply random variance between -0.20 and 0.30 (20% lower to 30% higher)
+    # Special case: 2024 Q4 should be 15% lower than actuals
     budgets_df = budgets_df.withColumn(
         "variance_factor",
-        F.lit(1.0) + (F.rand() * 0.50 - 0.20)
+        F.when(
+            (F.col("fiscal_year") == 2024) & (F.col("fiscal_quarter") == 4),
+            F.lit(0.85)  # 15% lower than actuals
+        ).otherwise(
+            F.lit(1.0) + (F.rand() * 0.50 - 0.20)
+        )
     ).withColumn(
         "budget_amount_base",
         (F.col("actual_amount") * F.col("variance_factor")).cast(DecimalType(18, 2))
