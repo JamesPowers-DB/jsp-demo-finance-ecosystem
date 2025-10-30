@@ -243,17 +243,16 @@ def create_fpa_actuals():
 
 @dp.table(
     name="fact_fpa_budgets",
-    comment="FPA budgets fact table - budgets are between 20% higher and 10% lower than actuals, extrapolated for incomplete quarters",
+    comment="FPA budgets fact table - budgets are based on actuals with random variance, current quarter is 8% higher than previous quarter",
 )
 def create_fpa_budgets():
     """
     Create FPA budgets table with typical columns for FPA budgets.
-    Budgets are generated to be between 20% higher and 10% lower than actuals for each scenario.
-    For incomplete quarters, actuals are extrapolated based on percent of quarter elapsed.
+    For past quarters: budgets are generated with random variance from actuals.
+    For current quarter: budget is 8% higher than the previous quarter's budget.
     """
     actuals_df = spark.table("fact_fpa_actuals")
 
-    # Generate random variance between -0.20 and 0.30 (20% lower to 30% higher)
     budgets_df = actuals_df.select(
         F.col("scenario_key"),
         F.col("cost_center_id"),
@@ -264,8 +263,6 @@ def create_fpa_budgets():
         F.col("fiscal_quarter"),
         F.col("fiscal_quarter_name"),
         F.col("actual_amount"),
-        F.col("earliest_transaction_date"),
-        F.col("latest_transaction_date"),
         F.col("currency")
     )
 
@@ -275,7 +272,14 @@ def create_fpa_budgets():
     budgets_df = budgets_df.withColumn("current_year", F.year(current_date))
     budgets_df = budgets_df.withColumn("current_quarter", F.quarter(current_date))
 
-    # Calculate quarter start and end dates based on fiscal_year and fiscal_quarter
+    # Determine if this is the current quarter
+    budgets_df = budgets_df.withColumn(
+        "is_current_quarter",
+        (F.col("fiscal_year") == F.col("current_year")) &
+        (F.col("fiscal_quarter") == F.col("current_quarter"))
+    )
+
+    # Calculate quarter start and end dates for percent complete calculation
     budgets_df = budgets_df.withColumn(
         "quarter_start_date",
         F.make_date(
@@ -292,16 +296,7 @@ def create_fpa_budgets():
         ))
     )
 
-    # Determine if this is the current quarter
-    budgets_df = budgets_df.withColumn(
-        "is_current_quarter",
-        (F.col("fiscal_year") == F.col("current_year")) &
-        (F.col("fiscal_quarter") == F.col("current_quarter"))
-    )
-
-    # Calculate days elapsed and percent complete
-    # For current quarter: use current_date to calculate progress
-    # For past quarters: quarter is 100% complete
+    # Calculate percent quarter complete (for display purposes)
     budgets_df = budgets_df.withColumn(
         "total_days_in_quarter",
         F.datediff(F.col("quarter_end_date"), F.col("quarter_start_date")) + 1
@@ -316,28 +311,43 @@ def create_fpa_budgets():
         F.col("days_elapsed") / F.col("total_days_in_quarter")
     )
 
-    # Extrapolate actuals to full quarter only for current quarter
-    budgets_df = budgets_df.withColumn(
-        "extrapolated_actual",
-        F.when(
-            F.col("is_current_quarter"),
-            (F.col("actual_amount") / F.col("percent_quarter_complete")).cast(DecimalType(18, 2))
-        ).otherwise(F.col("actual_amount"))
-    )
-
-    # Apply random variance: budget = extrapolated_actual * (1 + random(-0.20, 0.30))
+    # For past quarters: apply random variance between -0.20 and 0.30 (20% lower to 30% higher)
     budgets_df = budgets_df.withColumn(
         "variance_factor",
-        F.lit(1.0) + (F.rand() * 0.50 - 0.20)  # Random between -0.20 and 0.30
+        F.lit(1.0) + (F.rand() * 0.50 - 0.20)
     ).withColumn(
+        "budget_amount_base",
+        (F.col("actual_amount") * F.col("variance_factor")).cast(DecimalType(18, 2))
+    )
+
+    # Create a window to get previous quarter's budget for each cost center/legal entity
+    from pyspark.sql import Window
+    window_spec = Window.partitionBy("cost_center_id", "legal_entity_id").orderBy("fiscal_year", "fiscal_quarter")
+
+    budgets_df = budgets_df.withColumn(
+        "prev_quarter_budget",
+        F.lag("budget_amount_base", 1).over(window_spec)
+    )
+
+    # For current quarter: use 8% higher than previous quarter, else use base calculation
+    budgets_df = budgets_df.withColumn(
         "budget_amount",
-        (F.col("extrapolated_actual") * F.col("variance_factor")).cast(DecimalType(18, 2))
-    ).withColumn(
+        F.when(
+            F.col("is_current_quarter") & F.col("prev_quarter_budget").isNotNull(),
+            (F.col("prev_quarter_budget") * 1.08).cast(DecimalType(18, 2))
+        ).otherwise(F.col("budget_amount_base"))
+    )
+
+    # Calculate variance
+    budgets_df = budgets_df.withColumn(
         "variance_amount",
-        (F.col("budget_amount") - F.col("extrapolated_actual")).cast(DecimalType(18, 2))
+        (F.col("budget_amount") - F.col("actual_amount")).cast(DecimalType(18, 2))
     ).withColumn(
         "variance_percent",
-        (F.col("variance_amount") / F.col("extrapolated_actual") * 100).cast(DecimalType(10, 2))
+        F.when(
+            F.col("actual_amount") != 0,
+            (F.col("variance_amount") / F.col("actual_amount") * 100).cast(DecimalType(10, 2))
+        ).otherwise(F.lit(0).cast(DecimalType(10, 2)))
     )
 
     # Add typical budget columns
@@ -370,7 +380,6 @@ def create_fpa_budgets():
         "fiscal_quarter_name",
         "record_type",
         "budget_amount",
-        "extrapolated_actual",
         "actual_amount",
         "variance_amount",
         "variance_percent",
