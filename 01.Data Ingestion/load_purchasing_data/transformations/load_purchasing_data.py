@@ -75,7 +75,7 @@ def load_raw_raw_spend_invoice_data():
     return spark.read\
         .option("recursiveFileLookup", "true")\
         .csv(
-            path=f'/Volumes/{catalog}/fin/data_gen_outputs/spend_invoices/',
+            path=f'/Volumes/{catalog}/finance_lakehouse/data_gen_outputs/spend_invoices/',
             header=True,
             schema=invoice_schema,
         )

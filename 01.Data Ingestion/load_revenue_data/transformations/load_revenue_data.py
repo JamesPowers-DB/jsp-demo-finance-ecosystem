@@ -32,7 +32,7 @@ def load_raw_rev_transaction_data():
     return spark.read\
         .option("recursiveFileLookup","true")\
         .csv(
-            path=f'/Volumes/{catalog}/fin/data_gen_outputs/revenue_transactions/',
+            path=f'/Volumes/{catalog}/finance_lakehouse/data_gen_outputs/revenue_transactions/',
             header=True,
             schema=rev_trx_schema,
         )
@@ -54,7 +54,7 @@ def load_raw_rev_billings_data():
     return spark.read\
         .option("recursiveFileLookup","true")\
         .csv(
-            path=f'/Volumes/{catalog}/fin/data_gen_outputs/revenue_billings/',
+            path=f'/Volumes/{catalog}/finance_lakehouse/data_gen_outputs/revenue_billings/',
             header=True,
             schema=rev_bill_schema,
         )

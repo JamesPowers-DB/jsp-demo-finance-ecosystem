@@ -14,7 +14,7 @@ def load_raw_rev_transaction_data():
 
     return spark.read\
         .json(
-            path=f'/Volumes/fin_demo/fin/data_gen_outputs/employees/'
+            path=f'/Volumes/{catalog}/finance_lakehouse/data_gen_outputs/employees/'
         )
 
 ############################################################

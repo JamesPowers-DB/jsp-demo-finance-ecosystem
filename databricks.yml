@@ -279,7 +279,7 @@ targets:
     workspace:
       host: https://e2-demo-west.cloud.databricks.com
       # We always use /Users/james.powers@databricks.com for all resources to make sure we only have a single copy.
-      root_path: /Users/james.powers@databricks.com/demo-finance-ecosystem/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Users/james.powers@databricks.com/.bundle/${bundle.name}/${bundle.target}
     run_as:
       # This runs as james.powers@databricks.com in production. We could also use a service principal here,
       # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
