@@ -243,12 +243,13 @@ def create_fpa_actuals():
 
 @dp.table(
     name="fact_fpa_budgets",
-    comment="FPA budgets fact table - budgets are between 20% higher and 10% lower than actuals",
+    comment="FPA budgets fact table - budgets are between 20% higher and 10% lower than actuals, extrapolated for incomplete quarters",
 )
 def create_fpa_budgets():
     """
     Create FPA budgets table with typical columns for FPA budgets.
     Budgets are generated to be between 20% higher and 10% lower than actuals for each scenario.
+    For incomplete quarters, actuals are extrapolated based on percent of quarter elapsed.
     """
     actuals_df = spark.table("fact_fpa_actuals")
 
@@ -263,22 +264,53 @@ def create_fpa_budgets():
         F.col("fiscal_quarter"),
         F.col("fiscal_quarter_name"),
         F.col("actual_amount"),
+        F.col("earliest_transaction_date"),
+        F.col("latest_transaction_date"),
         F.col("currency")
     )
 
-    # Apply random variance: budget = actual * (1 + random(-0.20, 0.30))
+    # Calculate quarter start and end dates
+    budgets_df = budgets_df.withColumn(
+        "quarter_start_date",
+        F.expr("date_trunc('quarter', latest_transaction_date)")
+    ).withColumn(
+        "quarter_end_date",
+        F.expr("last_day(add_months(date_trunc('quarter', latest_transaction_date), 2))")
+    )
+
+    # Calculate days elapsed in quarter and total days in quarter
+    budgets_df = budgets_df.withColumn(
+        "days_elapsed",
+        F.datediff(F.col("latest_transaction_date"), F.col("quarter_start_date")) + 1
+    ).withColumn(
+        "total_days_in_quarter",
+        F.datediff(F.col("quarter_end_date"), F.col("quarter_start_date")) + 1
+    ).withColumn(
+        "percent_quarter_complete",
+        F.col("days_elapsed") / F.col("total_days_in_quarter")
+    )
+
+    # Extrapolate actuals to full quarter (if quarter is less than 95% complete)
+    budgets_df = budgets_df.withColumn(
+        "extrapolated_actual",
+        F.when(F.col("percent_quarter_complete") < 0.95,
+               (F.col("actual_amount") / F.col("percent_quarter_complete")).cast(DecimalType(18, 2)))
+        .otherwise(F.col("actual_amount"))
+    )
+
+    # Apply random variance: budget = extrapolated_actual * (1 + random(-0.20, 0.30))
     budgets_df = budgets_df.withColumn(
         "variance_factor",
         F.lit(1.0) + (F.rand() * 0.50 - 0.20)  # Random between -0.20 and 0.30
     ).withColumn(
         "budget_amount",
-        (F.col("actual_amount") * F.col("variance_factor")).cast(DecimalType(18, 2))
+        (F.col("extrapolated_actual") * F.col("variance_factor")).cast(DecimalType(18, 2))
     ).withColumn(
         "variance_amount",
-        (F.col("budget_amount") - F.col("actual_amount")).cast(DecimalType(18, 2))
+        (F.col("budget_amount") - F.col("extrapolated_actual")).cast(DecimalType(18, 2))
     ).withColumn(
         "variance_percent",
-        (F.col("variance_amount") / F.col("actual_amount") * 100).cast(DecimalType(10, 2))
+        (F.col("variance_amount") / F.col("extrapolated_actual") * 100).cast(DecimalType(10, 2))
     )
 
     # Add typical budget columns
@@ -311,6 +343,7 @@ def create_fpa_budgets():
         "fiscal_quarter_name",
         "record_type",
         "budget_amount",
+        "extrapolated_actual",
         "actual_amount",
         "variance_amount",
         "variance_percent",
@@ -322,17 +355,17 @@ def create_fpa_budgets():
 
 @dp.table(
     name="fact_fpa_forecasts",
-    comment="FPA forecasts fact table - forecasts are between 30% higher and 20% lower than actuals",
+    comment="FPA forecasts fact table - forecasts are based on budget data with variance",
 )
 def create_fpa_forecasts():
     """
     Create FPA forecasts table with typical columns for FPA forecasts.
-    Forecasts are generated to be between 30% higher and 20% lower than actuals for each scenario.
+    Forecasts are generated based on budget amounts with random variance applied.
     """
-    actuals_df = spark.table("fact_fpa_actuals")
+    budgets_df = spark.table("fact_fpa_budgets")
 
-    # Generate random variance between -0.35 and 0.50 (35% lower to 50% higher)
-    forecasts_df = actuals_df.select(
+    # Generate random variance between -0.15 and 0.25 (15% lower to 25% higher than budget)
+    forecasts_df = budgets_df.select(
         F.col("scenario_key"),
         F.col("cost_center_id"),
         F.col("cost_center_name"),
@@ -341,23 +374,23 @@ def create_fpa_forecasts():
         F.col("fiscal_year"),
         F.col("fiscal_quarter"),
         F.col("fiscal_quarter_name"),
-        F.col("actual_amount"),
+        F.col("budget_amount"),
         F.col("currency")
     )
 
-    # Apply random variance: forecast = actual * (1 + random(-0.35, 0.50))
+    # Apply random variance: forecast = budget * (1 + random(-0.15, 0.25))
     forecasts_df = forecasts_df.withColumn(
         "variance_factor",
-        F.lit(1.0) + (F.rand() * 0.85 - 0.35)  # Random between -0.35 and 0.50
+        F.lit(1.0) + (F.rand() * 0.40 - 0.15)  # Random between -0.15 and 0.25
     ).withColumn(
         "forecast_amount",
-        (F.col("actual_amount") * F.col("variance_factor")).cast(DecimalType(18, 2))
+        (F.col("budget_amount") * F.col("variance_factor")).cast(DecimalType(18, 2))
     ).withColumn(
-        "variance_to_actual",
-        (F.col("forecast_amount") - F.col("actual_amount")).cast(DecimalType(18, 2))
+        "variance_to_budget",
+        (F.col("forecast_amount") - F.col("budget_amount")).cast(DecimalType(18, 2))
     ).withColumn(
-        "variance_to_actual_percent",
-        (F.col("variance_to_actual") / F.col("actual_amount") * 100).cast(DecimalType(10, 2))
+        "variance_to_budget_percent",
+        (F.col("variance_to_budget") / F.col("budget_amount") * 100).cast(DecimalType(10, 2))
     )
 
     # Add typical forecast columns
