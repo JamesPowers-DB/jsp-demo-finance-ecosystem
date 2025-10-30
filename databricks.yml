@@ -211,53 +211,53 @@ resources:
           depends_on:
             - task_key: gen_fin_demo_cat_schema
           pipeline_task:
-            pipeline_id: load_accounting_data
+            pipeline_id: ${resources.pipelines.load_accounting_data.id}
             full_refresh: false
         - task_key: load_hr_datasets
           depends_on:
             - task_key: load_accounting_datasets
           pipeline_task:
-            pipeline_id: load_hr_data
+            pipeline_id: ${resources.pipelines.load_hr_data.id}
             full_refresh: false
         - task_key: load_legal_datasets
           depends_on:
             - task_key: load_hr_datasets
           pipeline_task:
-            pipeline_id: load_legal_data
+            pipeline_id: ${resources.pipelines.load_legal_data.id}
             full_refresh: false
         - task_key: load_purchasing_datasets
           depends_on:
             - task_key: load_accounting_datasets
             - task_key: load_legal_datasets
           pipeline_task:
-            pipeline_id: load_purchasing_data
+            pipeline_id: ${resources.pipelines.load_purchasing_data.id}
             full_refresh: false
         - task_key: load_revenue_datasets
           depends_on:
             - task_key: load_accounting_datasets
             - task_key: load_legal_datasets
           pipeline_task:
-            pipeline_id: load_revenue_data
+            pipeline_id: ${resources.pipelines.load_revenue_data.id}
             full_refresh: false
         - task_key: load_gl_datasets
           depends_on:
             - task_key: load_purchasing_datasets
             - task_key: load_revenue_datasets
           pipeline_task:
-            pipeline_id: load_gl_data
+            pipeline_id: ${resources.pipelines.load_gl_data.id}
             full_refresh: false
         - task_key: load_third_party_datasets
           depends_on:
             - task_key: gen_fin_demo_cat_schema
           pipeline_task:
-            pipeline_id: load_third_party_data
+            pipeline_id: ${resources.pipelines.load_third_party_data.id}
             full_refresh: false
         - task_key: load_fpa_datasets
           depends_on:
             - task_key: load_hr_datasets
             - task_key: load_purchasing_datasets
           pipeline_task:
-            pipeline_id: load_fpa_data
+            pipeline_id: ${resources.pipelines.load_fpa_data.id}
             full_refresh: false
       queue:
         enabled: true
@@ -266,12 +266,6 @@ resources:
 
 
 targets:
-  # The 'dev' target, for development purposes. This target is the default.
-  dev:
-    mode: development
-    default: true
-    workspace:
-      host: https://e2-demo-west.cloud.databricks.com
 
   # The 'prod' target, used for production deployment.
   prod:
