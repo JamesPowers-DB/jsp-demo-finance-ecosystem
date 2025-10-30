@@ -269,33 +269,60 @@ def create_fpa_budgets():
         F.col("currency")
     )
 
-    # Calculate quarter start and end dates
+    # Get current date and fiscal period
+    current_date = F.current_date()
+    budgets_df = budgets_df.withColumn("current_date", current_date)
+    budgets_df = budgets_df.withColumn("current_year", F.year(current_date))
+    budgets_df = budgets_df.withColumn("current_quarter", F.quarter(current_date))
+
+    # Calculate quarter start and end dates based on fiscal_year and fiscal_quarter
     budgets_df = budgets_df.withColumn(
         "quarter_start_date",
-        F.expr("date_trunc('quarter', latest_transaction_date)")
+        F.make_date(
+            F.col("fiscal_year"),
+            ((F.col("fiscal_quarter") - 1) * 3 + 1).cast(IntegerType()),
+            F.lit(1)
+        )
     ).withColumn(
         "quarter_end_date",
-        F.expr("last_day(add_months(date_trunc('quarter', latest_transaction_date), 2))")
+        F.last_day(F.make_date(
+            F.col("fiscal_year"),
+            (F.col("fiscal_quarter") * 3).cast(IntegerType()),
+            F.lit(1)
+        ))
     )
 
-    # Calculate days elapsed in quarter and total days in quarter
+    # Determine if this is the current quarter
     budgets_df = budgets_df.withColumn(
-        "days_elapsed",
-        F.datediff(F.col("latest_transaction_date"), F.col("quarter_start_date")) + 1
-    ).withColumn(
+        "is_current_quarter",
+        (F.col("fiscal_year") == F.col("current_year")) &
+        (F.col("fiscal_quarter") == F.col("current_quarter"))
+    )
+
+    # Calculate days elapsed and percent complete
+    # For current quarter: use current_date to calculate progress
+    # For past quarters: quarter is 100% complete
+    budgets_df = budgets_df.withColumn(
         "total_days_in_quarter",
         F.datediff(F.col("quarter_end_date"), F.col("quarter_start_date")) + 1
+    ).withColumn(
+        "days_elapsed",
+        F.when(
+            F.col("is_current_quarter"),
+            F.datediff(F.col("current_date"), F.col("quarter_start_date")) + 1
+        ).otherwise(F.col("total_days_in_quarter"))
     ).withColumn(
         "percent_quarter_complete",
         F.col("days_elapsed") / F.col("total_days_in_quarter")
     )
 
-    # Extrapolate actuals to full quarter (if quarter is less than 95% complete)
+    # Extrapolate actuals to full quarter only for current quarter
     budgets_df = budgets_df.withColumn(
         "extrapolated_actual",
-        F.when(F.col("percent_quarter_complete") < 0.95,
-               (F.col("actual_amount") / F.col("percent_quarter_complete")).cast(DecimalType(18, 2)))
-        .otherwise(F.col("actual_amount"))
+        F.when(
+            F.col("is_current_quarter"),
+            (F.col("actual_amount") / F.col("percent_quarter_complete")).cast(DecimalType(18, 2))
+        ).otherwise(F.col("actual_amount"))
     )
 
     # Apply random variance: budget = extrapolated_actual * (1 + random(-0.20, 0.30))
@@ -350,6 +377,7 @@ def create_fpa_budgets():
         "budget_version",
         "approved_date",
         "currency",
+        "percent_quarter_complete",
         "created_date"
     )
 
