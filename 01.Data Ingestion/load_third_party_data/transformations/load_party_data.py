@@ -4,8 +4,8 @@ from pyspark import pipelines as dp
 # BRONZE LAYER
 
 #TODO : JSP - This seems bad and I hate this
-catalog = 'fin_demo'
-schema = 'party'
+catalog = 'main'
+schema = 'finance_lakehouse'
 
 # -- THIRD PARTY DATA -- #
 @dp.table(
@@ -13,7 +13,7 @@ schema = 'party'
     comment="Materialized view loaded from JSON files in third party data volume"
 )
 def load_raw_():
-    return spark.read.format("json").load(f"/Volumes/{catalog}/fin/data_gen_outputs/third_parties/")
+    return spark.read.format("json").load("/Volumes/main/finance_lakehouse/data_gen_outputs/third_parties/")
 
 # -- SUPPLIER DATA -- #
 @dp.table(
@@ -21,7 +21,7 @@ def load_raw_():
     comment="Materialized view loaded from JSON files in supplier data volume"
 )
 def load_raw_suppliers():
-    return spark.read.format("json").load(f"/Volumes/{catalog}/fin/data_gen_outputs/suppliers/")
+    return spark.read.format("json").load("/Volumes/main/finance_lakehouse/data_gen_outputs/suppliers/")
 
 # -- CUSTOMER DATA -- #
 @dp.table(
@@ -29,7 +29,7 @@ def load_raw_suppliers():
     comment="Materialized view loaded from JSON files in customer data volume"
 )
 def load_raw_customers():
-    return spark.read.format("json").load(f"/Volumes/{catalog}/fin/data_gen_outputs/customers/")
+    return spark.read.format("json").load("/Volumes/main/finance_lakehouse/data_gen_outputs/customers/")
 
 ############################################################
 # SILVER LAYER
@@ -37,7 +37,7 @@ def load_raw_customers():
 ############################################################
 # GOLD LAYER 
 
-gold_schema = 'tp_gold'
+
 
 @dp.table(
     name=f"{catalog}.{schema}.dim_third_party",

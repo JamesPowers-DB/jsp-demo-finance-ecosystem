@@ -9,8 +9,8 @@ from pyspark.sql.types import (
     BooleanType
     )
 
-catalog = 'fin_demo'
-schema = 'spend'
+catalog = 'main'
+schema = 'finance_lakehouse'
 
 ############################################################
 # BRONZE LAYER
@@ -38,7 +38,7 @@ def load_raw_purchase_order_data():
     return spark.read\
         .option("recursiveFileLookup","true")\
         .csv(
-            path=f"/Volumes/{catalog}/fin/data_gen_outputs/purchase_orders/",
+            path="/Volumes/main/finance_lakehouse/data_gen_outputs/purchase_orders/",
             header=True,
             inferSchema=True, 
         )

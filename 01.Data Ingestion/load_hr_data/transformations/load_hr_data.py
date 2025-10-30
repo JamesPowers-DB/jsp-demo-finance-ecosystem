@@ -1,8 +1,8 @@
 from pyspark import pipelines as dp
 from pyspark.sql.functions import to_date, col, from_unixtime, expr
 
-catalog = 'fin_demo'
-schema = 'hr'
+catalog = 'main'
+schema = 'finance_lakehouse'
 
 ############################################################
 # BRONZE LAYER

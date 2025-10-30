@@ -5,8 +5,8 @@ from pyspark import pipelines as dp
 # BRONZE LAYER
 
 #TODO : JSP - This seems bad and I hate this
-catalog = 'fin_demo'
-schema = 'legal'
+catalog = 'main'
+schema = 'finance_lakehouse'
 
 
 @dp.table(
@@ -14,14 +14,14 @@ schema = 'legal'
     comment="Materialized view loaded from JSON files in third party data volume"
 )
 def load_raw_():
-    return spark.read.format("json").load(f"/Volumes/{catalog}/fin/data_gen_outputs/outbound_contracts/")
+    return spark.read.format("json").load("/Volumes/main/finance_lakehouse/data_gen_outputs/outbound_contracts/")
 
 @dp.table(
     name=f"{catalog}.{schema}.raw_inbound_contracts",
     comment="Materialized view loaded from JSON files in supplier data volume"
 )
 def load_raw_suppliers():
-    return spark.read.format("json").load(f"/Volumes/{catalog}/fin/data_gen_outputs/inbound_contracts/")
+    return spark.read.format("json").load("/Volumes/main/finance_lakehouse/data_gen_outputs/inbound_contracts/")
 
 
 

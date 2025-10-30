@@ -10,8 +10,8 @@ from pyspark.sql.types import (
     )
 
 #TODO : JSP - This seems bad and I hate this
-catalog = 'fin_demo'
-schema = 'rev'
+catalog = 'main'
+schema = 'finance_lakehouse'
 
 ############################################################
 # BRONZE LAYER
