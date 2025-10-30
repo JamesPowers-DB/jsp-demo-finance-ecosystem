@@ -19,49 +19,187 @@ resources:
         development: false
         photon: true
         channel: CURRENT
-        catalog: fin_demo
-        schema: acct
+        catalog: main
+        schema: finance_lakehouse
         root_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_accounting_data
-
-        
-        
     
-    # load_fpa_data:
-    #     name: load_fpa_data
-    #     libraries:
-    #       - file:
-    #           path: "./01.Data Ingestion/transformations" 
-    # load_gl_data:
-    #     name: load_gl_data
-    #     libraries:
-    #       - file:
-    #           path: "./01.Data Ingestion/transformations" 
-    # load_hr_data:
-    #     name: load_hr_data
-    #     libraries:
-    #       - file:
-    #           path: "./01.Data Ingestion/transformations" 
-    # load_legal_data:
-    #     name: load_legal_data
-    #     libraries:
-    #       - file:
-    #           path: "./01.Data Ingestion/transformations" 
-    # load_purchasing_data:
-    #     name: load_purchasing_data
-    #     libraries:
-    #       - file:
-    #           path: "./01.Data Ingestion/transformations" 
-    # load_revenue_data:
-    #     name: load_revenue_data
-    #     libraries:
-    #       - file:
-    #           path: "./01.Data Ingestion/transformations" 
-    # load_third_party_data:
-    #     name: load_third_party_data
-    #     libraries:
-    #       - file:
-    #           path: "./01.Data Ingestion/transformations" 
+    load_fpa_data:
+        name: load_fpa_data
+        libraries:
+          - glob:
+              include: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_fpa_data/transformations/**
+        serverless: true
+        continuous: false
+        development: false
+        photon: true
+        channel: CURRENT
+        catalog: main
+        schema: finance_lakehouse
+        root_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_fpa_data
+
+    load_gl_data:
+        name: load_gl_data
+        libraries:
+          - glob:
+              include: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_gl_data/transformations/**
+        serverless: true
+        continuous: false
+        development: false
+        photon: true
+        channel: CURRENT
+        catalog: main
+        schema: finance_lakehouse
+        root_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_gl_data
+
+    load_hr_data:
+        name: load_hr_data
+        libraries:
+          - glob:
+              include: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_hr_data/transformations/**
+        serverless: true
+        continuous: false
+        development: false
+        photon: true
+        channel: CURRENT
+        catalog: main
+        schema: finance_lakehouse
+        root_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_hr_data
+
+    load_legal_data:
+        name: load_legal_data
+        libraries:
+          - glob:
+              include: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_legal_data/transformations/**
+        serverless: true
+        continuous: false
+        development: false
+        photon: true
+        channel: CURRENT
+        catalog: main
+        schema: finance_lakehouse
+        root_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_legal_data
+
+    load_purchasing_data:
+        name: load_purchasing_data
+        libraries:
+          - glob:
+              include: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_purchasing_data/transformations/**
+        serverless: true
+        continuous: false
+        development: false
+        photon: true
+        channel: CURRENT
+        catalog: main
+        schema: finance_lakehouse
+        root_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_purchasing_data
+
+    load_revenue_data:
+        name: load_revenue_data
+        libraries:
+          - glob:
+              include: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_revenue_data/transformations/**
+        serverless: true
+        continuous: false
+        development: false
+        photon: true
+        channel: CURRENT
+        catalog: main
+        schema: finance_lakehouse
+        root_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_revenue_data
+
+    load_third_party_data:
+        name: load_third_party_data
+        libraries:
+          - glob:
+              include: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_third_party_data/transformations/**
+        serverless: true
+        continuous: false
+        development: false
+        photon: true
+        channel: CURRENT
+        catalog: main
+        schema: finance_lakehouse
+        root_path: /Workspace/Users/james.powers@databricks.com/demo-finance-ecosystem/01.Data Ingestion/load_third_party_data
               
+  jobs:
+    fin_demo_gen_fake_data:
+      name: fin_demo_gen_fake_data
+      tasks:
+        - task_key: create_catalog_schemas
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/00_create_catalog
+            source: WORKSPACE
+        - task_key: run_coa_hier
+          depends_on:
+            - task_key: create_catalog_schemas
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/01_generate_coa_hierarchy
+            source: WORKSPACE
+        - task_key: run_employee_gen
+          depends_on:
+            - task_key: run_coa_hier
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/03_generate_employee_data
+            source: WORKSPACE
+        - task_key: run_third_party_gen
+          depends_on:
+            - task_key: run_coa_hier
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/02a_generate_third_parties
+            source: WORKSPACE
+        - task_key: run_customer_gen
+          depends_on:
+            - task_key: run_third_party_gen
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/02b_generate_customers
+            source: WORKSPACE
+        - task_key: run_outbound_contract_gen
+          depends_on:
+            - task_key: run_customer_gen
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/04a_generate_outbound_contracts
+            source: WORKSPACE
+        - task_key: run_rev_trx_gen
+          depends_on:
+            - task_key: run_outbound_contract_gen
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/04c_generate_rev_transactions
+            source: WORKSPACE
+        - task_key: run_rev_bill_gen
+          depends_on:
+            - task_key: run_rev_trx_gen
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/04d_generate_revenue_billing
+            source: WORKSPACE
+        - task_key: run_supplier_gen
+          depends_on:
+            - task_key: run_third_party_gen
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/02c_generate_suppliers
+            source: WORKSPACE
+        - task_key: run_inbound_contract_gen
+          depends_on:
+            - task_key: run_supplier_gen
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/05a_generate_inbound_contracts
+            source: WORKSPACE
+        - task_key: run_purchase_gen
+          depends_on:
+            - task_key: run_inbound_contract_gen
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/05b_generate_purchase_orders
+            source: WORKSPACE
+        - task_key: run_spend_invoice_gen
+          depends_on:
+            - task_key: run_purchase_gen
+          notebook_task:
+            notebook_path: /Workspace/Users/james.powers@databricks.com/jsp-demo-finance-ecosystem/00.Data Generation/05c_generate_spend_invoices
+            source: WORKSPACE
+      queue:
+        enabled: true
+      performance_target: PERFORMANCE_OPTIMIZED
+
+
 
 targets:
   # The 'dev' target, for development purposes. This target is the default.
@@ -77,7 +215,7 @@ targets:
     workspace:
       host: https://e2-demo-west.cloud.databricks.com
       # We always use /Users/james.powers@databricks.com for all resources to make sure we only have a single copy.
-      root_path: /Users/james.powers@databricks.com/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Users/james.powers@databricks.com/demo-finance-ecosystem/.bundle/${bundle.name}/${bundle.target}
     run_as:
       # This runs as james.powers@databricks.com in production. We could also use a service principal here,
       # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
