@@ -18,7 +18,7 @@ schema = 'finance_lakehouse'
 
 
 @dp.table(
-    name=f"{catalog}.{schema}.raw_purchase_orders",
+    name=f"raw_purchase_orders",
     comment="Raw data for the purchase orders table"
 )
 def load_raw_purchase_order_data():
@@ -45,7 +45,7 @@ def load_raw_purchase_order_data():
     
 
 @dp.table(
-    name=f"{catalog}.{schema}.raw_spend_invoices",
+    name=f"raw_spend_invoices",
 )
 def load_raw_raw_spend_invoice_data():
 
@@ -85,7 +85,7 @@ def load_raw_raw_spend_invoice_data():
 # # SILVER LAYER
 
 @dp.table(
-    name=f"{catalog}.{schema}.stg_spend_transactions",
+    name=f"stg_spend_transactions",
     comment="Staging table joining purchase orders and spend invoices"
 )
 def stg_spend_transactions():
@@ -129,12 +129,12 @@ def stg_spend_transactions():
             ,inv.invoice_year
             ,inv.invoice_month
 
-        FROM {catalog}.{schema}.raw_purchase_orders po
-        LEFT JOIN {catalog}.party.dim_third_party AS party
+        FROM raw_purchase_orders po
+        LEFT JOIN dim_third_party AS party
             ON po.supplier_id = party.supplier_id
-        LEFT JOIN {catalog}.acct.raw_coa_hierarchy AS acct
+        LEFT JOIN raw_coa_hierarchy AS acct
             ON po.coa_id = acct.coa_id
-        LEFT JOIN {catalog}.{schema}.raw_spend_invoices AS inv
+        LEFT JOIN raw_spend_invoices AS inv
             ON po.purchase_order_id = inv.purchase_order_id
 
     """)
@@ -142,7 +142,7 @@ def stg_spend_transactions():
 
 
 @dp.table(
-    name=f"{catalog}.{schema}.stg_commit_spend",
+    name=f"stg_commit_spend",
     comment="Amortizes total_contract_value by month between contract_start_date and estimated_completion_date, including all contract dimensions."
 )
 def load_stg_commit_revenue():
@@ -196,7 +196,7 @@ def load_stg_commit_revenue():
 
 
 @dp.table(
-    name=f"{catalog}.{schema}.fact_spend_recognition",
+    name=f"fact_spend_recognition",
     comment="Joins monthly stg_commit_spend with stg_spend_transactions aggregated by transaction month."
 )
 def fact_revenue_recognition():

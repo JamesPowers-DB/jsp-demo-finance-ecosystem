@@ -98,7 +98,7 @@ def create_fpa_scenarios():
     )
 
 @dp.table(
-    name=f"{catalog}.{schema}.fact_fpa_actuals",
+    name=f"fact_fpa_actuals",
     comment="FPA actuals fact table with actual spend and amortized salary amounts by scenario",
 )
 def create_fpa_actuals():

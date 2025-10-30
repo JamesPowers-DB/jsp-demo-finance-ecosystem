@@ -8,7 +8,7 @@ schema = 'finance_lakehouse'
 # BRONZE LAYER
 
 @dp.table(
-    name=f"{catalog}.{schema}.raw_employee_data",
+    name=f"raw_employee_data",
 )
 def load_raw_rev_transaction_data():
 
@@ -24,10 +24,10 @@ def load_raw_rev_transaction_data():
 # GOLD LAYER
 
 @dp.table(
-    name=f"{catalog}.{schema}.dim_employees",
+    name=f"dim_employees",
 )
 def fact_employee():
-    df = spark.table(f"{catalog}.{schema}.raw_employee_data")
+    df = spark.table(f"raw_employee_data")
 
     return df.select(
         col("employee_id").cast("long"),
@@ -44,7 +44,7 @@ def fact_employee():
 
 
 @dp.table(
-    name=f"{catalog}.{schema}.fact_emp_quarterly_cost",
+    name=f"fact_emp_quarterly_cost",
 )
 def fact_employee():
     df = spark.sql("""

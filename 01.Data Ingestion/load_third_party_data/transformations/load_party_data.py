@@ -9,7 +9,7 @@ schema = 'finance_lakehouse'
 
 # -- THIRD PARTY DATA -- #
 @dp.table(
-    name=f"{catalog}.{schema}.raw_third_parties",
+    name=f"raw_third_parties",
     comment="Materialized view loaded from JSON files in third party data volume"
 )
 def load_raw_():
@@ -17,7 +17,7 @@ def load_raw_():
 
 # -- SUPPLIER DATA -- #
 @dp.table(
-    name=f"{catalog}.{schema}.raw_suppliers",
+    name=f"raw_suppliers",
     comment="Materialized view loaded from JSON files in supplier data volume"
 )
 def load_raw_suppliers():
@@ -25,7 +25,7 @@ def load_raw_suppliers():
 
 # -- CUSTOMER DATA -- #
 @dp.table(
-    name=f"{catalog}.{schema}.raw_customers",
+    name=f"raw_customers",
     comment="Materialized view loaded from JSON files in customer data volume"
 )
 def load_raw_customers():
@@ -40,7 +40,7 @@ def load_raw_customers():
 
 
 @dp.table(
-    name=f"{catalog}.{schema}.dim_third_party",
+    name=f"dim_third_party",
     comment="Materialized view of third party data"
 )
 def load_dim_third_party():
@@ -52,10 +52,10 @@ def load_dim_third_party():
             supp.supplier_id,
             cust.customer_id,
             cust.customer_industry
-        FROM {catalog}.{schema}.raw_third_parties AS tp        
-        LEFT JOIN {catalog}.{schema}.raw_suppliers AS supp
+        FROM raw_third_parties AS tp        
+        LEFT JOIN raw_suppliers AS supp
             ON tp.third_party_id = supp.third_party_id
-        LEFT JOIN {catalog}.{schema}.raw_customers AS cust
+        LEFT JOIN raw_customers AS cust
             ON tp.third_party_id = cust.third_party_id
         """
     )

@@ -10,14 +10,14 @@ schema = 'finance_lakehouse'
 
 
 @dp.table(
-    name=f"{catalog}.{schema}.raw_outbound_contracts",
+    name=f"raw_outbound_contracts",
     comment="Materialized view loaded from JSON files in third party data volume"
 )
 def load_raw_():
     return spark.read.format("json").load("/Volumes/main/finance_lakehouse/data_gen_outputs/outbound_contracts/")
 
 @dp.table(
-    name=f"{catalog}.{schema}.raw_inbound_contracts",
+    name=f"raw_inbound_contracts",
     comment="Materialized view loaded from JSON files in supplier data volume"
 )
 def load_raw_suppliers():
@@ -34,7 +34,7 @@ def load_raw_suppliers():
 
 
 @dp.table(
-    name=f"{catalog}.{schema}.dim_all_contracts",
+    name=f"dim_all_contracts",
     comment="Materialized view of third party data"
 )
 def load_dim_third_party():
@@ -62,8 +62,8 @@ def load_dim_third_party():
                 ,'Outbound' AS agreement_type 
                 ,party.third_party_id
                 ,party.third_party_name
-            FROM {catalog}.{schema}.raw_outbound_contracts AS outbound
-            LEFT JOIN {catalog}.party.dim_third_party AS party
+            FROM raw_outbound_contracts AS outbound
+            LEFT JOIN dim_third_party AS party
                 ON outbound.customer_id = party.customer_id
             UNION ALL
             SELECT 
@@ -72,8 +72,8 @@ def load_dim_third_party():
                 ,'Inbound' AS agreement_type 
                 ,party.third_party_id
                 ,party.third_party_name
-            FROM {catalog}.{schema}.raw_inbound_contracts AS inbound
-            LEFT JOIN {catalog}.party.dim_third_party AS party
+            FROM raw_inbound_contracts AS inbound
+            LEFT JOIN dim_third_party AS party
                 ON inbound.supplier_id = party.supplier_id
 
         )
@@ -101,7 +101,7 @@ def load_dim_third_party():
             SELECT DISTINCT
                 legal_entity_id
                 ,legal_entity_name
-            FROM {catalog}.acct.raw_coa_hierarchy 
+            FROM raw_coa_hierarchy 
             )AS le
             ON base_contracts.legal_entity_id = le.legal_entity_id
         """

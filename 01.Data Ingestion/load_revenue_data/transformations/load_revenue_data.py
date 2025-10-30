@@ -17,7 +17,7 @@ schema = 'finance_lakehouse'
 # BRONZE LAYER
 
 @dp.table(
-    name=f"{catalog}.{schema}.raw_revenue_transactions",
+    name=f"raw_revenue_transactions",
 )
 def load_raw_rev_transaction_data():
     rev_trx_schema  = StructType([
@@ -38,7 +38,7 @@ def load_raw_rev_transaction_data():
         )
 
 @dp.table(
-    name=f"{catalog}.{schema}.raw_revenue_billings",
+    name=f"raw_revenue_billings",
 )
 def load_raw_rev_billings_data():
     rev_bill_schema  = StructType([
@@ -64,7 +64,7 @@ def load_raw_rev_billings_data():
 
 
 @dp.table(
-    name=f"{catalog}.{schema}.stg_revenue_transactions",
+    name=f"stg_revenue_transactions",
     comment="Staging table joining revenue transactions with billings."
 )
 def load_stg_revenue_transcations():
@@ -93,12 +93,12 @@ def load_stg_revenue_transcations():
             ,FROM_UNIXTIME(bill.payment_due_date) AS payment_due_date
             ,bill.retention_amount
 
-        FROM {catalog}.{schema}.raw_revenue_transactions AS trx
-        LEFT JOIN {catalog}.party.dim_third_party AS party
+        FROM raw_revenue_transactions AS trx
+        LEFT JOIN dim_third_party AS party
             ON trx.customer_id = party.customer_id
-        LEFT JOIN {catalog}.acct.raw_coa_hierarchy AS acct
+        LEFT JOIN raw_coa_hierarchy AS acct
             ON trx.coa_id = acct.coa_id
-        LEFT JOIN {catalog}.{schema}.raw_revenue_billings AS bill
+        LEFT JOIN raw_revenue_billings AS bill
             ON trx.rev_trx_id = bill.rev_trx_id
         """
         ) 
@@ -108,7 +108,7 @@ def load_stg_revenue_transcations():
 # --------------------------------------------------------------------------#
 # DBX Specific Demo 
 @dp.table(
-    name=f"{catalog}.{schema}.stg_dbx_consumption_revenue",
+    name=f"stg_dbx_consumption_revenue",
     comment="Staging table joining revenue transactions with billings."
 )
 def load_stg_revenue_transcations():
@@ -155,12 +155,12 @@ def load_stg_revenue_transcations():
             -- ,FROM_UNIXTIME(bill.payment_due_date) AS payment_due_date
             -- ,bill.retention_amount
 
-        FROM {catalog}.{schema}.raw_revenue_transactions AS trx
-        LEFT JOIN {catalog}.party.dim_third_party AS party
+        FROM raw_revenue_transactions AS trx
+        LEFT JOIN dim_third_party AS party
             ON trx.customer_id = party.customer_id
-        LEFT JOIN {catalog}.acct.raw_coa_hierarchy AS acct
+        LEFT JOIN raw_coa_hierarchy AS acct
             ON trx.coa_id = acct.coa_id
-        LEFT JOIN {catalog}.{schema}.raw_revenue_billings AS bill
+        LEFT JOIN raw_revenue_billings AS bill
             ON trx.rev_trx_id = bill.rev_trx_id
         """
         ) 
@@ -171,7 +171,7 @@ def load_stg_revenue_transcations():
 
 
 @dp.table(
-    name=f"{catalog}.{schema}.stg_commit_revenue",
+    name=f"stg_commit_revenue",
     comment="Amortizes total_contract_value by month between contract_start_date and estimated_completion_date, including all contract dimensions."
 )
 def load_stg_commit_revenue():
@@ -223,7 +223,7 @@ def load_stg_commit_revenue():
 # # GOLD LAYER 
 
 @dp.table(
-    name=f"{catalog}.{schema}.fact_revenue_recognition",
+    name=f"fact_revenue_recognition",
     comment="Joins monthly stg_commit_revenue with stg_revenue_transactions aggregated by transaction month."
 )
 def fact_revenue_recognition():
