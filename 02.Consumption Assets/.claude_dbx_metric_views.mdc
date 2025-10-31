@@ -8,12 +8,13 @@ alwaysApply: false
 - Use your finance knowledge to weave metrics that tell an interesting financial story. The story should blend various datasets to create a cohesive narrative.
 - Opt for simplicity - do not add more than 8 dimensions and 8 metrics to a single metrics file.
 - The metric subject areas should be provided by the user in a comma separated list. Each subject should have its one metric view.
+- Ask for clarification before attempting to write code if you are confused.
 
 
 # Syntax
 - SYNTAX IS RIGID AND MUST BE FOLLOWED EXACTLY
 - SYNTAX IS RIGID AND MUST BE FOLLOWED EXACTLY
-- USE "SAMPLE_METRICS_FILES.
+- USE "metric_planning.yaml" as a baseline to understand syntax and file structure.
 - Use databricks documenation for syntax reference on building metric view files:
     - Define metrics: https://docs.databricks.com/aws/en/metric-views/create
     - YAML Reference: https://docs.databricks.com/aws/en/metric-views/yaml-ref
@@ -21,8 +22,15 @@ alwaysApply: false
     - Joins in metric views: https://docs.databricks.com/aws/en/metric-views/joins
 - Metric view should be wrapped in SQL statement like the example below:
 
+Example of definition logic: 
 ```sql
-ALTER VIEW metric_view_name AS
+USE CATALOG main;
+USE SCHEMA finance_lakehouse;
+
+CREATE OR REPLACE VIEW example
+WITH METRICS
+LANGUAGE YAML
+AS
 $$
 version: 1.1
 source: samples.tpch.orders
@@ -37,23 +45,24 @@ measures:
 - name: total_revenue
   expr: SUM(o_totalprice)
   comment: "Total revenue"
-$$
+$$;
 ```
 
+Example of join logic: 
 ```yaml 
 # sample join logic
-source: catalog.schema.fact_table
+source: fact_table
 
 joins:
   # The on clause supports a boolean expression
   - name: dimension_table_1
-    source: catalog.schema.dimension_table_1
+    source: dimension_table_1
     on: source.dimension_table_1_fk = dimension_table_1.pk
 
   # The using clause supports an array of columns
   # found in both of the tables being joined.
   - name: dimension_table_2
-    source: catalog.schema.dimension_table_2
+    source: dimension_table_2
     using:
       - dimension_table_2_key_a
       - dimension_table_2_key_b
@@ -73,7 +82,39 @@ measures:
 # Data sources and schema
 - Use the sample datasets available in "../zz.Data Samples" to understand the various table schemas.
 - The name of the sample datasets represent the catalog.schema.table_name for the databricks dataset.
+- when you join tables together, make sure the grain matches
 
 # File Instructions
-- Save the files to "03.Consumption Assets" directory.
-- Name the files "metric_{subject_name}.yaml"
+- Save the files to "02.Consumption Assets" directory.
+- Name the files "metric_{subject_name}.sql"
+
+
+# Files to create
+
+## headcount metrics
+primary datasource: fact_emp_quarterly_cost
+seconary datasources: fact_revenue_recognition, fact_spend_recognition
+- quarterly revenue per employee 
+- quarterly revenue per sales department Employee (cost center 1002) 
+- quarterly spend per employee headcount 
+
+## Variance & Performance
+primary datasource: dim_fpa_scenarios
+secondary datasources: fact_fpa_budgets, fact_fpa_actuals
+- Budget vs Actual Variance (budget + actuals)
+- Budget vs Actual Variance % (budget + actuals) 
+- Forecast Accuracy (forecast vs actuals, calculated retroactively)
+
+## Cash & Obligations
+primary datasource: stg_spend_transactions
+secondary datasources: dim_all_contracts
+- Days Payable Outstanding (DPO)
+- Committed vs Spent (contracts + spend - shows what's contracted but not yet invoiced)
+
+## Growth & Revenue
+primary datasource: fact_revenue_recognition
+secondary datasources: 
+- Revenue (ARR/MRR if SaaS) (actuals)
+- Revenue Growth % (YoY, QoQ) (actuals)
+- Contract Revenue at Risk (outbound agreement types contracts + actuals revenue - shows contracts up for renewal with current utilization)
+

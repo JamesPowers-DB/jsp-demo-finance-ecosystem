@@ -1,0 +1,41 @@
+coa_id,cost_center_id,cost_center_name,legal_entity_id,legal_entity_name
+70000000,1000,Executive,100001,Acme Corporation
+70000001,1000,Executive,100002,Global Industries Inc
+70000002,1000,Executive,100003,TechVentures LLC
+70000003,1000,Executive,100004,International Holdings Ltd
+70000004,1000,Executive,100005,Enterprise Solutions Group
+70000005,1001,Corporate,100001,Acme Corporation
+70000006,1001,Corporate,100002,Global Industries Inc
+70000007,1001,Corporate,100003,TechVentures LLC
+70000008,1001,Corporate,100004,International Holdings Ltd
+70000009,1001,Corporate,100005,Enterprise Solutions Group
+70000010,1002,Sales Department,100001,Acme Corporation
+70000011,1002,Sales Department,100002,Global Industries Inc
+70000012,1002,Sales Department,100003,TechVentures LLC
+70000013,1002,Sales Department,100004,International Holdings Ltd
+70000014,1002,Sales Department,100005,Enterprise Solutions Group
+70000015,1003,Marketing Department,100001,Acme Corporation
+70000016,1003,Marketing Department,100002,Global Industries Inc
+70000017,1003,Marketing Department,100003,TechVentures LLC
+70000018,1003,Marketing Department,100004,International Holdings Ltd
+70000019,1003,Marketing Department,100005,Enterprise Solutions Group
+70000020,1004,Engineering,100001,Acme Corporation
+70000021,1004,Engineering,100002,Global Industries Inc
+70000022,1004,Engineering,100003,TechVentures LLC
+70000023,1004,Engineering,100004,International Holdings Ltd
+70000024,1004,Engineering,100005,Enterprise Solutions Group
+70000025,1005,R&D,100001,Acme Corporation
+70000026,1005,R&D,100002,Global Industries Inc
+70000027,1005,R&D,100003,TechVentures LLC
+70000028,1005,R&D,100004,International Holdings Ltd
+70000029,1005,R&D,100005,Enterprise Solutions Group
+70000030,1006,Finance,100001,Acme Corporation
+70000031,1006,Finance,100002,Global Industries Inc
+70000032,1006,Finance,100003,TechVentures LLC
+70000033,1006,Finance,100004,International Holdings Ltd
+70000034,1006,Finance,100005,Enterprise Solutions Group
+70000035,1007,Manufacturing,100001,Acme Corporation
+70000036,1007,Manufacturing,100002,Global Industries Inc
+70000037,1007,Manufacturing,100003,TechVentures LLC
+70000038,1007,Manufacturing,100004,International Holdings Ltd
+70000039,1007,Manufacturing,100005,Enterprise Solutions Group
