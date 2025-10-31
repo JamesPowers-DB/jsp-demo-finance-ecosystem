@@ -16,7 +16,7 @@
         "  ,MEASURE(budget_variance) AS total_variance\n",
         "  ,MEASURE(forecast_accuracy) AS forecast_accuracy\n",
         "  ,MEASURE(budget_utilization) AS budget_utilization\n",
-        "FROM fin_demo.plan.metrics_planning \n",
+        "FROM main.finance_lakehouse.metrics_planning \n",
         "WHERE fiscal_quarter_name = 'FY2025Q3'\n",
         "GROUP BY ALL"
       ]
@@ -37,7 +37,7 @@
         "  ,MEASURE(budget_variance) AS total_variance\n",
         "  ,MEASURE(forecast_accuracy) AS forecast_accuracy\n",
         "  ,MEASURE(budget_utilization) AS budget_utilization\n",
-        "FROM fin_demo.plan.metrics_planning \n",
+        "FROM main.finance_lakehouse.metrics_planning \n",
         "GROUP BY ALL"
       ]
     },
@@ -53,7 +53,7 @@
         "  ,SUM(spend_amount) AS total_spend\n",
         "  ,SUM(salary_amount) AS total_salary\n",
         "  ,SUM(salary_amount) / SUM(actual_amount) AS headcount_percentage\n",
-        "FROM fin_demo.plan.fact_fpa_actuals\n",
+        "FROM main.finance_lakehouse.fact_fpa_actuals\n",
         "WHERE fiscal_quarter_name = 'FY2025Q3'\n",
         "GROUP BY ALL "
       ]
@@ -71,7 +71,7 @@
         "  ,SUM(actual_amount) AS total_actual\n",
         "  ,SUM(spend_amount) AS total_spend\n",
         "  ,SUM(salary_amount) AS total_salary\n",
-        "FROM fin_demo.plan.fact_fpa_actuals\n",
+        "FROM main.finance_lakehouse.fact_fpa_actuals\n",
         "GROUP BY ALL "
       ]
     },
@@ -111,14 +111,17 @@
         "  ,DATE(FROM_UNIXTIME(payment_date)) AS payment_date\n",
         "  ,DATE_TRUNC('quarter', FROM_UNIXTIME(payment_date)) AS payment_quarter\n",
         "  \n",
-        "FROM fin_demo.spend.stg_spend_transactions\n"
+        "FROM main.finance_lakehouse.stg_spend_transactions\n"
       ]
     },
     {
       "name": "4273b056",
       "displayName": "Current AP Balance",
       "queryLines": [
-        "SELECT SUM(credit_balance) AS total_ap_balance FROM fin_demo.acct.fact_gl_trial_balances WHERE account_name = 'Accounts Payable' AND as_of_date = (SELECT MAX(as_of_date) FROM fin_demo.acct.fact_gl_trial_balances)"
+        "SELECT SUM(credit_balance) AS total_ap_balance \n",
+        "FROM main.finance_lakehouse.fact_gl_trial_balances \n",
+        "WHERE account_name = 'Accounts Payable' \n",
+        "AND as_of_date = (SELECT MAX(as_of_date) FROM main.finance_lakehouse.fact_gl_trial_balances)"
       ]
     },
     {
@@ -126,7 +129,7 @@
       "displayName": "Active Supplier Count",
       "queryLines": [
         "SELECT COUNT(DISTINCT third_party_name) AS supplier_count \n",
-        "FROM fin_demo.acct.fact_gl_entries \n",
+        "FROM main.finance_lakehouse.fact_gl_entries \n",
         "WHERE account_name = 'Accounts Payable' AND gl_date >= DATE_SUB(CURRENT_DATE(), 90)"
       ]
     },
@@ -134,7 +137,11 @@
       "name": "6232aeab",
       "displayName": "AP Payments Last 30 Days",
       "queryLines": [
-        "SELECT SUM(debit_amount) AS total_payments FROM fin_demo.acct.fact_gl_entries WHERE account_name = 'Accounts Payable' AND debit_amount > 0 AND gl_date >= DATE_SUB(CURRENT_DATE(), 30)"
+        "SELECT SUM(debit_amount) AS total_payments \n",
+        "FROM main.finance_lakehouse.fact_gl_entries \n",
+        "WHERE account_name = 'Accounts Payable' \n",
+        "    AND debit_amount > 0 \n",
+        "    AND gl_date >= DATE_SUB(CURRENT_DATE(), 30)"
       ]
     },
     {
@@ -148,7 +155,7 @@
         "    ,cost_center_name\n",
         "    ,third_party_name\n",
         "    ,SUM(credit_balance) AS ap_balance\n",
-        "  FROM fin_demo.acct.fact_gl_trial_balances \n",
+        "  FROM main.finance_lakehouse.fact_gl_trial_balances \n",
         "  WHERE account_name = 'Accounts Payable' \n",
         "  GROUP BY ALL\n",
         "), prep AS (\n",
@@ -244,7 +251,7 @@
                 "title": "Recent Full Quarter Actuals ($)",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Sum of Recent Full quarter (FY2025 Q3) actual spending."
+                "description": "Sum of Current Quarter"
               }
             }
           },

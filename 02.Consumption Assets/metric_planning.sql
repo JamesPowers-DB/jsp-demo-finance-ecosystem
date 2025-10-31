@@ -1,3 +1,4 @@
+
 ALTER VIEW metrics_planning AS
 $$
 version: 1.1

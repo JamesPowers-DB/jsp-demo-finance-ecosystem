@@ -301,7 +301,7 @@ def create_fpa_budgets():
     budgets_df = budgets_df.withColumn(
         "variance_factor",
         F.when(
-            (F.col("fiscal_year") == 2024) & (F.col("fiscal_quarter") == 4),
+            (F.col("fiscal_year") == 2024) & (F.col("fiscal_quarter") == 2),
             F.lit(0.85)  # 15% lower than actuals
         ).otherwise(
             F.lit(1.0) + (F.rand() * 0.50 - 0.20)
