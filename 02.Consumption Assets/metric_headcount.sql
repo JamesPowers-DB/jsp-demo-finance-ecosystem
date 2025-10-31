@@ -83,7 +83,7 @@ measures:
   - name: revenue_per_employee
     expr: SUM(revenue.rev_recognized_amount) / NULLIF(SUM(agg_qtr_salary), 0) * 100000
     comment: "Quarterly revenue per $100K of employee cost (productivity ratio)"
-    display_name: "Revenue per $100K Employee Cost"
+    display_name: "Revenue per $100 Employee Cost"
     format:
       type: currency
       currency_code: USD

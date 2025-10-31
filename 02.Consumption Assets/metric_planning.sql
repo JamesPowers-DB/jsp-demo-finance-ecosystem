@@ -1,154 +1,144 @@
 USE CATALOG main;
 USE SCHEMA finance_lakehouse;
 
-CREATE OR REPLACE VIEW metrics_planning
+CREATE OR REPLACE VIEW metric_planning
 WITH METRICS
 LANGUAGE YAML
 AS
 $$
 version: 1.1
 source: dim_fpa_scenarios
-comment: Financial planning metrics comparing budgets, forecasts, and actuals across cost centers and legal entities
+comment: "Budget variance and forecast performance metrics comparing planned vs actual financial performance"
 
 joins:
   - name: budgets
     source: fact_fpa_budgets
     on: source.scenario_key = budgets.scenario_key
 
-  - name: forecasts
-    source: fact_fpa_forecasts
-    on: source.scenario_key = forecasts.scenario_key
 
   - name: actuals
     source: fact_fpa_actuals
     on: source.scenario_key = actuals.scenario_key
 
+  - name: forecast
+    source: fact_fpa_forecasts
+    on: source.scenario_key = forecast.scenario_key
+
 dimensions:
   - name: fiscal_year
     expr: fiscal_year
-    comment: Fiscal year for the planning period
-    display_name: Fiscal Year
+    comment: "Fiscal year"
+    display_name: "Fiscal Year"
     format:
       type: number
       decimal_places:
         type: all
       hide_group_separator: true
-    synonyms:
-      - year
-      - fy
 
   - name: fiscal_quarter
     expr: fiscal_quarter
-    comment: Fiscal quarter name for the planning period
-    display_name: Fiscal Quarter
+    comment: "Fiscal quarter (1-4)"
+    display_name: "Fiscal Quarter"
     synonyms:
       - quarter
-      - period
+      - qtr
 
-  - name: cost_center
-    expr: cost_center_name
-    comment: Cost center or department name
-    display_name: Cost Center
-    synonyms:
-      - department
-      - division
-
-  - name: legal_entity
-    expr: legal_entity_name
-    comment: Legal entity or company name
-    display_name: Legal Entity
-    synonyms:
-      - entity
-      - company
-      - organization
-
-  - name: quarter_start
-    expr: DATE(quarter_start_date)
-    comment: Start date of the fiscal quarter
-    display_name: Quarter Start Date
-    format:
-      type: date
-      date_format: year_month_day
-      leading_zeros: true
-    synonyms:
-      - period start
-      - start date
-    
   - name: fiscal_quarter_name
     expr: CONCAT('FY', fiscal_year, 'Q', fiscal_quarter)
     comment: Readable name for fiscal year and fiscal quarter combination
     display_name: Fiscal Quarter Name
 
+  - name: cost_center_id
+    expr: cost_center_id
+    comment: "Cost center identifier"
+    display_name: "Cost Center ID"
+
+  - name: cost_center
+    expr: cost_center_name
+    comment: "Cost center name"
+    display_name: "Cost Center Name"
+
+  - name: legal_entity_id
+    expr: legal_entity_id
+    comment: "Legal entity identifier"
+    display_name: "Legal Entity ID"
+
+  - name: legal_entity
+    expr: legal_entity_name
+    comment: "Legal entity name"
+    display_name: "Legal Entity Name"
+
 measures:
-  - name: total_budget
+  - name: budget_amount
     expr: SUM(budgets.budget_amount)
-    comment: Total budgeted amount for the planning period
-    display_name: Total Budget
+    comment: "Total budgeted amount"
+    display_name: "Budget Amount"
     format:
       type: currency
       currency_code: USD
       decimal_places:
         type: exact
         places: 2
-      hide_group_separator: false
       abbreviation: compact
     synonyms:
       - budget
-      - budgeted amount
+      - planned amount
 
-  - name: total_forecast
-    expr: SUM(forecasts.forecast_amount)
-    comment: Total forecasted amount for the planning period
-    display_name: Total Forecast
+  - name: actual_amount
+    expr: SUM(actuals.actual_amount)
+    comment: "Total actual amount"
+    display_name: "Actual Amount"
     format:
       type: currency
       currency_code: USD
       decimal_places:
         type: exact
         places: 2
-      hide_group_separator: false
+      abbreviation: compact
+    synonyms:
+      - actuals
+      - actual spend
+
+  - name: forecast_amount
+    expr: SUM(forecast.forecast_amount)
+    comment: "Total Forecast amount"
+    display_name: "Forecast Amount"
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
       abbreviation: compact
     synonyms:
       - forecast
       - forecasted amount
       - projection
 
-  - name: total_actual
-    expr: SUM(actuals.actual_amount)
-    comment: Total actual spending for the planning period
-    display_name: Total Actual
-    format:
-      type: currency
-      currency_code: USD
-      decimal_places:
-        type: exact
-        places: 2
-      hide_group_separator: false
-      abbreviation: compact
-    synonyms:
-      - actual
-      - actual spending
-
-  - name: budget_variance
+  - name: variance_amount
     expr: SUM(budgets.budget_amount) - SUM(actuals.actual_amount)
-    comment: Variance between budget and actual (positive means under budget)
-    display_name: Budget Variance
+    comment: "Budget variance (positive = under budget, negative = over budget)"
+    display_name: "Budget vs Actual Variance"
     format:
       type: currency
       currency_code: USD
       decimal_places:
         type: exact
         places: 2
-      hide_group_separator: false
       abbreviation: compact
     synonyms:
       - variance
-      - budget vs actual
+      - budget variance
+      - bva
 
-  - name: forecast_accuracy
-    expr: (1 - ABS(SUM(forecasts.forecast_amount) - SUM(actuals.actual_amount)) / NULLIF(SUM(actuals.actual_amount), 0)) 
-    comment: Forecast accuracy percentage (100% means perfect forecast)
-    display_name: Forecast Accuracy
+  - name: variance_percent
+    expr: |
+      CASE
+        WHEN SUM(budgets.budget_amount) = 0 THEN NULL
+        ELSE ((SUM(budgets.budget_amount) - SUM(actuals.actual_amount)) / SUM(budgets.budget_amount))
+      END
+    comment: "Budget variance percentage (positive = under budget, negative = over budget)"
+    display_name: "Budget vs Actual Variance %"
     format:
       type: percentage
       decimal_places:
@@ -156,35 +146,37 @@ measures:
         places: 2
       hide_group_separator: false
     synonyms:
-      - accuracy
-      - forecast precision
+      - variance pct
+      - variance percentage
+      - bva percent
 
-  - name: budget_utilization
-    expr: (SUM(actuals.actual_amount) / NULLIF(SUM(budgets.budget_amount), 0))
-    comment: Percentage of budget utilized (actual/budget * 100)
-    display_name: Budget Utilization
+  - name: actual_spend
+    expr: SUM(actuals.spend_amount)
+    comment: "Total actual spend amount"
+    display_name: "Actual Spend"
     format:
-      type: percentage
+      type: currency
+      currency_code: USD
       decimal_places:
         type: exact
         places: 2
-      hide_group_separator: false
+      abbreviation: compact
     synonyms:
-      - utilization
-      - spend rate
+      - spend
+      - expenditure
 
-  - name: transaction_volume
-    expr: SUM(actuals.transaction_count)
-    comment: Total number of transactions across all actuals
-    display_name: Transaction Volume
+  - name: actual_salary
+    expr: SUM(actuals.salary_amount)
+    comment: "Total actual salary amount"
+    display_name: "Actual Salary"
     format:
-      type: number
+      type: currency
+      currency_code: USD
       decimal_places:
         type: exact
         places: 2
-      hide_group_separator: true
+      abbreviation: compact
     synonyms:
-      - transactions
-      - transaction count
-$$
-;
+      - salary
+      - labor cost
+$$;

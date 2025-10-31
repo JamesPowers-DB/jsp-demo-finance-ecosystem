@@ -16,6 +16,14 @@ joins:
     on: source.contract_id = contracts.contract_id
 
 dimensions:
+  - name: invoice_date 
+    expr: DATE(FROM_UNIXTIME(invoice_date))
+    comment: "Invoice date"
+    display_name: "Invoice Date"
+    format:
+      type: date
+      date_format: year_month_day
+
   - name: invoice_year
     expr: YEAR(invoice_date)
     comment: "Invoice year"
@@ -47,7 +55,7 @@ dimensions:
       - vendor
 
   - name: legal_entity
-    expr: legal_entity_id
+    expr: coa_meta.legal_entity_id
     comment: "Legal entity identifier"
     display_name: "Legal Entity ID"
 
@@ -93,7 +101,7 @@ measures:
       - payments
 
   - name: outstanding_payables
-    expr: SUM(total_invoice_amount) - SUM(amount_paid)
+    expr: total_invoice_amount - amount_paid
     comment: "Outstanding payables (invoiced but not yet paid)"
     display_name: "Outstanding Payables"
     format:
@@ -111,8 +119,8 @@ measures:
   - name: days_payable_outstanding
     expr: |
       CASE
-        WHEN SUM(total_invoice_amount) = 0 THEN NULL
-        ELSE (SUM(total_invoice_amount) - SUM(amount_paid)) / NULLIF(SUM(total_invoice_amount), 0) * 365 / 12
+        WHEN total_invoice_amount = 0 THEN NULL
+        ELSE (total_invoice_amount - amount_paid) / NULLIF(total_invoice_amount, 0) * 365 / 12
       END
     comment: "Days Payable Outstanding - average number of days to pay invoices"
     display_name: "Days Payable Outstanding (DPO)"
@@ -141,22 +149,6 @@ measures:
     synonyms:
       - contract value
       - committed amount
-
-  - name: committed_vs_spent
-    expr: SUM(contracts.total_contract_value) - SUM(total_invoice_amount)
-    comment: "Committed but not yet invoiced (shows what's contracted but not yet spent)"
-    display_name: "Committed vs Spent"
-    format:
-      type: currency
-      currency_code: USD
-      decimal_places:
-        type: exact
-        places: 2
-      abbreviation: compact
-    synonyms:
-      - committed not invoiced
-      - uninvoiced commitments
-      - remaining contract value
 
   - name: invoice_count
     expr: COUNT(DISTINCT invoice_id)

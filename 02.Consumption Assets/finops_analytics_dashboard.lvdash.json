@@ -10,13 +10,12 @@
         "  ,fiscal_quarter_name\n",
         "  ,cost_center\n",
         "  ,legal_entity\n",
-        "  ,MEASURE(total_budget) AS total_budget \n",
-        "  ,MEASURE(total_forecast) AS total_forecast\n",
-        "  ,MEASURE(total_actual) AS total_actual\n",
-        "  ,MEASURE(budget_variance) AS total_variance\n",
-        "  ,MEASURE(forecast_accuracy) AS forecast_accuracy\n",
-        "  ,MEASURE(budget_utilization) AS budget_utilization\n",
-        "FROM main.finance_lakehouse.metrics_planning \n",
+        "  ,MEASURE(budget_amount) AS total_budget \n",
+        "  ,MEASURE(forecast_amount) AS total_forecast\n",
+        "  ,MEASURE(actual_amount) AS total_actual\n",
+        "  ,MEASURE(variance_amount) AS total_variance\n",
+        "  ,MEASURE(variance_percent) AS budget_utilization\n",
+        "FROM main.finance_lakehouse.metric_planning \n",
         "WHERE fiscal_quarter_name = 'FY2025Q3'\n",
         "GROUP BY ALL"
       ]
@@ -31,13 +30,12 @@
         "  ,fiscal_quarter_name\n",
         "  ,cost_center\n",
         "  ,legal_entity\n",
-        "  ,MEASURE(total_budget) AS total_budget \n",
-        "  ,MEASURE(total_forecast) AS total_forecast\n",
-        "  ,MEASURE(total_actual) AS total_actual\n",
-        "  ,MEASURE(budget_variance) AS total_variance\n",
-        "  ,MEASURE(forecast_accuracy) AS forecast_accuracy\n",
-        "  ,MEASURE(budget_utilization) AS budget_utilization\n",
-        "FROM main.finance_lakehouse.metrics_planning \n",
+        "  ,MEASURE(budget_amount) AS total_budget \n",
+        "  ,MEASURE(forecast_amount) AS total_forecast\n",
+        "  ,MEASURE(actual_amount) AS total_actual\n",
+        "  ,MEASURE(variance_amount) AS total_variance\n",
+        "  ,MEASURE(variance_percent) AS budget_utilization\n",
+        "FROM main.finance_lakehouse.metric_planning \n",
         "GROUP BY ALL"
       ]
     },
@@ -602,7 +600,10 @@
                 "y": {
                   "fieldName": "avg(budget_utilization)",
                   "scale": {
-                    "type": "quantitative"
+                    "type": "quantitative",
+                    "fn": {
+                      "type": "symlog"
+                    }
                   },
                   "format": {
                     "type": "number-percent",
@@ -878,54 +879,6 @@
             "y": 27,
             "width": 6,
             "height": 7
-          }
-        },
-        {
-          "widget": {
-            "name": "263669ae",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "4bd0cae7",
-                  "fields": [
-                    {
-                      "name": "avg(forecast_accuracy)",
-                      "expression": "AVG(`forecast_accuracy`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "counter",
-              "encodings": {
-                "value": {
-                  "fieldName": "avg(forecast_accuracy)",
-                  "format": {
-                    "type": "number-percent",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 2
-                    }
-                  }
-                }
-              },
-              "frame": {
-                "title": "Current Quarter Forecast Accuracy (%)",
-                "showTitle": true,
-                "showDescription": true,
-                "description": "Accuracy between actuals and the forecast for the Recent Full quarter. \nA percentage < 100% means lower actuals."
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 9,
-            "width": 2,
-            "height": 4
           }
         },
         {
