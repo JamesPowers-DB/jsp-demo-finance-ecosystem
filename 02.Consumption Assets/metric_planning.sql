@@ -1,5 +1,10 @@
+USE CATALOG main;
+USE SCHEMA finance_lakehouse;
 
-ALTER VIEW metrics_planning AS
+CREATE OR REPLACE VIEW metrics_planning
+WITH METRICS
+LANGUAGE YAML
+AS
 $$
 version: 1.1
 source: dim_fpa_scenarios
@@ -181,6 +186,5 @@ measures:
     synonyms:
       - transactions
       - transaction count
-
-
 $$
+;

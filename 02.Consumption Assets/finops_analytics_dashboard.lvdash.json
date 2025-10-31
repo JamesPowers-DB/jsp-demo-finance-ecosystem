@@ -513,15 +513,15 @@
                 "colors": [
                   {
                     "themeColorType": "visualizationColors",
-                    "position": 6
-                  },
-                  {
-                    "themeColorType": "visualizationColors",
-                    "position": 3
-                  },
-                  {
-                    "themeColorType": "visualizationColors",
                     "position": 1
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
                   },
                   {
                     "themeColorType": "visualizationColors",
@@ -732,7 +732,10 @@
                 "y": {
                   "fieldName": "avg(forecast_accuracy)",
                   "scale": {
-                    "type": "quantitative"
+                    "type": "quantitative",
+                    "fn": {
+                      "type": "symlog"
+                    }
                   },
                   "format": {
                     "type": "number-percent",
@@ -932,7 +935,7 @@
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "4bd0cae7",
+                  "datasetName": "ds_kpi_variance_ytd",
                   "fields": [
                     {
                       "name": "sum(total_actual)",
@@ -943,8 +946,8 @@
                       "expression": "SUM(`total_budget`)"
                     },
                     {
-                      "name": "cost_center",
-                      "expression": "`cost_center`"
+                      "name": "fiscal_quarter_name",
+                      "expression": "`fiscal_quarter_name`"
                     }
                   ],
                   "disaggregated": false
@@ -969,14 +972,10 @@
                   ]
                 },
                 "y": {
-                  "fieldName": "cost_center",
+                  "fieldName": "fiscal_quarter_name",
                   "scale": {
-                    "type": "categorical",
-                    "sort": {
-                      "by": "x-reversed"
-                    }
-                  },
-                  "displayName": "Cost Center"
+                    "type": "categorical"
+                  }
                 },
                 "label": {
                   "show": false
@@ -1727,7 +1726,7 @@
                   ],
                   "filters": [
                     {
-                      "expression": "`purchase_year` IN (2025)"
+                      "expression": "`purchase_year` IN (2025, 2024)"
                     }
                   ],
                   "disaggregated": false
