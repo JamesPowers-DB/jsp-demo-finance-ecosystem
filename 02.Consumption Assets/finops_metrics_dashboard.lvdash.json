@@ -1,0 +1,1399 @@
+{
+  "datasets": [
+    {
+      "name": "ds_headcount_metrics",
+      "displayName": "Headcount Productivity Metrics",
+      "queryLines": [
+        "SELECT ",
+        "  year,",
+        "  quarter,",
+        "  cost_center,",
+        "  legal_entity,",
+        "  MEASURE(quarterly_headcount_cost) AS headcount_cost,",
+        "  MEASURE(quarterly_revenue) AS revenue,",
+        "  MEASURE(revenue_per_employee) AS revenue_per_employee,",
+        "  MEASURE(revenue_per_sales_employee) AS revenue_per_sales,",
+        "  MEASURE(quarterly_spend) AS spend,",
+        "  MEASURE(spend_per_employee) AS spend_per_employee",
+        "FROM main.finance_lakehouse.metric_headcount",
+        "GROUP BY ALL"
+      ]
+    },
+    {
+      "name": "ds_variance_performance",
+      "displayName": "Variance & Performance Metrics",
+      "queryLines": [
+        "SELECT ",
+        "  fiscal_year,",
+        "  fiscal_quarter,",
+        "  quarter_name,",
+        "  cost_center,",
+        "  cost_center_name,",
+        "  legal_entity,",
+        "  legal_entity_name,",
+        "  MEASURE(budget_amount) AS budget,",
+        "  MEASURE(actual_amount) AS actuals,",
+        "  MEASURE(variance_amount) AS variance,",
+        "  MEASURE(variance_percent) AS variance_pct,",
+        "  MEASURE(actual_spend) AS actual_spend,",
+        "  MEASURE(actual_salary) AS actual_salary",
+        "FROM main.finance_lakehouse.metric_variance_performance",
+        "GROUP BY ALL"
+      ]
+    },
+    {
+      "name": "ds_cash_obligations",
+      "displayName": "Cash & Obligations Metrics",
+      "queryLines": [
+        "SELECT ",
+        "  invoice_year,",
+        "  invoice_month,",
+        "  invoice_status,",
+        "  supplier,",
+        "  legal_entity,",
+        "  contract_status,",
+        "  agreement_type,",
+        "  MEASURE(total_invoice_amount) AS invoice_amount,",
+        "  MEASURE(amount_paid) AS paid,",
+        "  MEASURE(outstanding_payables) AS outstanding,",
+        "  MEASURE(days_payable_outstanding) AS dpo,",
+        "  MEASURE(total_contracted_value) AS contracted,",
+        "  MEASURE(committed_vs_spent) AS committed_uninvoiced,",
+        "  MEASURE(invoice_count) AS invoice_count",
+        "FROM main.finance_lakehouse.metric_cash_obligations",
+        "GROUP BY ALL"
+      ]
+    },
+    {
+      "name": "ds_revenue_growth",
+      "displayName": "Revenue Growth Metrics",
+      "queryLines": [
+        "SELECT ",
+        "  revenue_year,",
+        "  revenue_quarter,",
+        "  revenue_month,",
+        "  customer,",
+        "  legal_entity,",
+        "  legal_entity_name,",
+        "  contract_status,",
+        "  agreement_type,",
+        "  MEASURE(recognized_revenue) AS revenue,",
+        "  MEASURE(monthly_recurring_revenue) AS mrr,",
+        "  MEASURE(annual_recurring_revenue) AS arr,",
+        "  MEASURE(billed_amount) AS billed,",
+        "  MEASURE(received_amount) AS received,",
+        "  MEASURE(transaction_count) AS transactions,",
+        "  MEASURE(contract_revenue_at_risk) AS revenue_at_risk",
+        "FROM main.finance_lakehouse.metric_growth_revenue",
+        "GROUP BY ALL"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "executive_overview",
+      "displayName": "Executive Financial Overview",
+      "layout": [
+        {
+          "widget": {
+            "name": "header_intro",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# Executive Financial Overview\n",
+                "Comprehensive view of organizational financial performance across headcount productivity, budget variance, cash obligations, and revenue growth. Use filters on the left to drill down by legal entity, cost center, and time period.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_total_revenue",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_revenue_growth",
+                  "fields": [
+                    {
+                      "name": "sum(revenue)",
+                      "expression": "SUM(`revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(revenue)",
+                  "displayName": "Total Revenue",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Total Recognized Revenue",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Total recognized revenue across all periods and entities"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_budget_variance",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_variance_performance",
+                  "fields": [
+                    {
+                      "name": "sum(variance)",
+                      "expression": "SUM(`variance`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(variance)",
+                  "displayName": "Budget Variance",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Budget Variance",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Positive = under budget (favorable), Negative = over budget (unfavorable)"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_outstanding_payables",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cash_obligations",
+                  "fields": [
+                    {
+                      "name": "sum(outstanding)",
+                      "expression": "SUM(`outstanding`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(outstanding)",
+                  "displayName": "Outstanding Payables",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Outstanding Payables",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Total amount invoiced but not yet paid"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "section_variance_header",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Budget Variance Analysis\n",
+                "Track budget vs actual performance over time. Identify areas of over/under spending and trends by legal entity.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "line_budget_variance_trend",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_variance_performance",
+                  "fields": [
+                    {
+                      "name": "quarter_name",
+                      "expression": "`quarter_name`"
+                    },
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    },
+                    {
+                      "name": "sum(variance)",
+                      "expression": "SUM(`variance`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "quarter_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Quarter"
+                },
+                "y": {
+                  "fieldName": "sum(variance)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  },
+                  "displayName": "Variance ($)"
+                },
+                "color": {
+                  "fieldName": "legal_entity_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Legal Entity"
+                }
+              },
+              "frame": {
+                "title": "Budget Variance Trend by Legal Entity",
+                "showTitle": true,
+                "description": "Quarterly variance trends showing over/under budget performance by entity"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_variance_by_cost_center",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_variance_performance",
+                  "fields": [
+                    {
+                      "name": "cost_center_name",
+                      "expression": "`cost_center_name`"
+                    },
+                    {
+                      "name": "sum(budget)",
+                      "expression": "SUM(`budget`)"
+                    },
+                    {
+                      "name": "sum(actuals)",
+                      "expression": "SUM(`actuals`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "sum(budget)",
+                      "displayName": "Budget"
+                    },
+                    {
+                      "fieldName": "sum(actuals)",
+                      "displayName": "Actuals"
+                    }
+                  ]
+                },
+                "y": {
+                  "fieldName": "cost_center_name",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  },
+                  "displayName": "Cost Center"
+                }
+              },
+              "frame": {
+                "title": "Budget vs Actuals by Cost Center",
+                "showTitle": true,
+                "description": "Compare budgeted and actual spending across cost centers"
+              },
+              "mark": {
+                "layout": "group"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 7,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "section_headcount_header",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Headcount Productivity & Efficiency\n",
+                "Analyze revenue and spend efficiency per employee. Monitor sales productivity and overall headcount effectiveness.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "line_revenue_per_employee",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_headcount_metrics",
+                  "fields": [
+                    {
+                      "name": "year",
+                      "expression": "`year`"
+                    },
+                    {
+                      "name": "quarter",
+                      "expression": "`quarter`"
+                    },
+                    {
+                      "name": "avg(revenue_per_employee)",
+                      "expression": "AVG(`revenue_per_employee`)"
+                    },
+                    {
+                      "name": "avg(revenue_per_sales)",
+                      "expression": "AVG(`revenue_per_sales`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "combo",
+              "encodings": {
+                "x": {
+                  "fieldName": "quarter",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Quarter"
+                },
+                "y": {
+                  "primary": {
+                    "fields": [
+                      {
+                        "fieldName": "avg(revenue_per_employee)",
+                        "displayName": "Revenue per Employee"
+                      }
+                    ]
+                  },
+                  "secondary": {
+                    "fields": [
+                      {
+                        "fieldName": "avg(revenue_per_sales)",
+                        "displayName": "Revenue per Sales Employee"
+                      }
+                    ]
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "title": "Revenue Productivity per $100K Employee Cost",
+                "showTitle": true,
+                "description": "Track revenue generated per $100K of employee cost - overall and sales-specific"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 14,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_headcount_cost_breakdown",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_variance_performance",
+                  "fields": [
+                    {
+                      "name": "quarter_name",
+                      "expression": "`quarter_name`"
+                    },
+                    {
+                      "name": "sum(actual_spend)",
+                      "expression": "SUM(`actual_spend`)"
+                    },
+                    {
+                      "name": "sum(actual_salary)",
+                      "expression": "SUM(`actual_salary`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "quarter_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Quarter"
+                },
+                "y": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "sum(actual_spend)",
+                      "displayName": "Operational Spend"
+                    },
+                    {
+                      "fieldName": "sum(actual_salary)",
+                      "displayName": "Salary Spend"
+                    }
+                  ],
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Spend Breakdown: Operations vs Headcount",
+                "showTitle": true,
+                "description": "Quarterly breakdown of operational spend vs salary costs"
+              },
+              "mark": {
+                "layout": "stack"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 14,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "section_cash_header",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Cash Flow & Obligations\n",
+                "Monitor payment cycles, Days Payable Outstanding (DPO), and committed vs spent amounts to optimize working capital.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 19,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_dpo",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cash_obligations",
+                  "fields": [
+                    {
+                      "name": "avg(dpo)",
+                      "expression": "AVG(`dpo`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(dpo)",
+                  "displayName": "Days Payable Outstanding",
+                  "format": {
+                    "type": "number",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Days Payable Outstanding (DPO)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Average days to pay invoices - higher DPO improves working capital"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 21,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_committed_uninvoiced",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cash_obligations",
+                  "fields": [
+                    {
+                      "name": "sum(committed_uninvoiced)",
+                      "expression": "SUM(`committed_uninvoiced`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(committed_uninvoiced)",
+                  "displayName": "Committed Not Invoiced",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Committed vs Spent",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Amount contracted but not yet invoiced - future obligation"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 21,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "pie_invoice_status",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cash_obligations",
+                  "fields": [
+                    {
+                      "name": "invoice_status",
+                      "expression": "`invoice_status`"
+                    },
+                    {
+                      "name": "sum(invoice_amount)",
+                      "expression": "SUM(`invoice_amount`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "sum(invoice_amount)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Invoice Amount"
+                },
+                "color": {
+                  "fieldName": "invoice_status",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Invoice Status"
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "frame": {
+                "title": "Invoice Status Distribution",
+                "showTitle": true,
+                "description": "Breakdown of invoices by status (paid, pending, cancelled, etc.)"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 21,
+            "width": 2,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "bar_top_suppliers",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cash_obligations",
+                  "fields": [
+                    {
+                      "name": "supplier",
+                      "expression": "`supplier`"
+                    },
+                    {
+                      "name": "sum(invoice_amount)",
+                      "expression": "SUM(`invoice_amount`)"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "SUM(`invoice_amount`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(invoice_amount)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  },
+                  "displayName": "Invoice Amount"
+                },
+                "y": {
+                  "fieldName": "supplier",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  },
+                  "displayName": "Supplier"
+                }
+              },
+              "frame": {
+                "title": "Top Suppliers by Invoice Amount",
+                "showTitle": true,
+                "description": "Largest suppliers ranked by total invoice value"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 24,
+            "width": 4,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "section_revenue_header",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Revenue Growth & Performance\n",
+                "Track revenue trends, ARR/MRR growth, and identify revenue at risk from contracts up for renewal.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 30,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_arr",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_revenue_growth",
+                  "fields": [
+                    {
+                      "name": "sum(arr)",
+                      "expression": "SUM(`arr`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(arr)",
+                  "displayName": "Annual Recurring Revenue",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Annual Recurring Revenue (ARR)",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Annualized monthly recurring revenue"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 32,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_revenue_at_risk",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_revenue_growth",
+                  "fields": [
+                    {
+                      "name": "sum(revenue_at_risk)",
+                      "expression": "SUM(`revenue_at_risk`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(revenue_at_risk)",
+                  "displayName": "Revenue at Risk",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Contract Revenue at Risk",
+                "showTitle": true,
+                "showDescription": true,
+                "description": "Revenue from outbound contracts up for renewal or completed"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 32,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "line_revenue_trend",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_revenue_growth",
+                  "fields": [
+                    {
+                      "name": "monthly(revenue_month)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `revenue_month`)"
+                    },
+                    {
+                      "name": "legal_entity_name",
+                      "expression": "`legal_entity_name`"
+                    },
+                    {
+                      "name": "sum(revenue)",
+                      "expression": "SUM(`revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(revenue_month)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "Month"
+                },
+                "y": {
+                  "fieldName": "sum(revenue)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    }
+                  },
+                  "displayName": "Revenue"
+                },
+                "color": {
+                  "fieldName": "legal_entity_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Legal Entity"
+                }
+              },
+              "frame": {
+                "title": "Monthly Revenue Trend by Legal Entity",
+                "showTitle": true,
+                "description": "Recognized revenue trend showing growth patterns by entity"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 32,
+            "width": 2,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "table_top_customers",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_revenue_growth",
+                  "fields": [
+                    {
+                      "name": "customer",
+                      "expression": "`customer`"
+                    },
+                    {
+                      "name": "sum(revenue)",
+                      "expression": "SUM(`revenue`)"
+                    },
+                    {
+                      "name": "sum(billed)",
+                      "expression": "SUM(`billed`)"
+                    },
+                    {
+                      "name": "sum(received)",
+                      "expression": "SUM(`received`)"
+                    },
+                    {
+                      "name": "sum(transactions)",
+                      "expression": "SUM(`transactions`)"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "SUM(`revenue`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "customer",
+                    "displayName": "Customer"
+                  },
+                  {
+                    "fieldName": "sum(revenue)",
+                    "displayName": "Revenue"
+                  },
+                  {
+                    "fieldName": "sum(billed)",
+                    "displayName": "Billed"
+                  },
+                  {
+                    "fieldName": "sum(received)",
+                    "displayName": "Received"
+                  },
+                  {
+                    "fieldName": "sum(transactions)",
+                    "displayName": "Transactions"
+                  }
+                ]
+              },
+              "frame": {
+                "title": "Top Customers by Revenue",
+                "showTitle": true,
+                "description": "Key customers ranked by total recognized revenue with billing details"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 35,
+            "width": 4,
+            "height": 7
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "global_filters",
+      "displayName": "Global Filters",
+      "layout": [
+        {
+          "widget": {
+            "name": "filter_year",
+            "queries": [
+              {
+                "name": "ds_headcount_year",
+                "query": {
+                  "datasetName": "ds_headcount_metrics",
+                  "fields": [
+                    {
+                      "name": "year",
+                      "expression": "`year`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_revenue_year",
+                "query": {
+                  "datasetName": "ds_revenue_growth",
+                  "fields": [
+                    {
+                      "name": "revenue_year",
+                      "expression": "`revenue_year`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_variance_year",
+                "query": {
+                  "datasetName": "ds_variance_performance",
+                  "fields": [
+                    {
+                      "name": "fiscal_year",
+                      "expression": "`fiscal_year`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_cash_year",
+                "query": {
+                  "datasetName": "ds_cash_obligations",
+                  "fields": [
+                    {
+                      "name": "invoice_year",
+                      "expression": "`invoice_year`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "year",
+                    "displayName": "Year",
+                    "queryName": "ds_headcount_year"
+                  },
+                  {
+                    "fieldName": "revenue_year",
+                    "displayName": "Year",
+                    "queryName": "ds_revenue_year"
+                  },
+                  {
+                    "fieldName": "fiscal_year",
+                    "displayName": "Year",
+                    "queryName": "ds_variance_year"
+                  },
+                  {
+                    "fieldName": "invoice_year",
+                    "displayName": "Year",
+                    "queryName": "ds_cash_year"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "YEAR"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_legal_entity",
+            "queries": [
+              {
+                "name": "ds_headcount_entity",
+                "query": {
+                  "datasetName": "ds_headcount_metrics",
+                  "fields": [
+                    {
+                      "name": "legal_entity",
+                      "expression": "`legal_entity`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_variance_entity",
+                "query": {
+                  "datasetName": "ds_variance_performance",
+                  "fields": [
+                    {
+                      "name": "legal_entity",
+                      "expression": "`legal_entity`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_cash_entity",
+                "query": {
+                  "datasetName": "ds_cash_obligations",
+                  "fields": [
+                    {
+                      "name": "legal_entity",
+                      "expression": "`legal_entity`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_revenue_entity",
+                "query": {
+                  "datasetName": "ds_revenue_growth",
+                  "fields": [
+                    {
+                      "name": "legal_entity",
+                      "expression": "`legal_entity`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "legal_entity",
+                    "displayName": "Legal Entity",
+                    "queryName": "ds_headcount_entity"
+                  },
+                  {
+                    "fieldName": "legal_entity",
+                    "displayName": "Legal Entity",
+                    "queryName": "ds_variance_entity"
+                  },
+                  {
+                    "fieldName": "legal_entity",
+                    "displayName": "Legal Entity",
+                    "queryName": "ds_cash_entity"
+                  },
+                  {
+                    "fieldName": "legal_entity",
+                    "displayName": "Legal Entity",
+                    "queryName": "ds_revenue_entity"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "LEGAL ENTITY"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_cost_center",
+            "queries": [
+              {
+                "name": "ds_headcount_cc",
+                "query": {
+                  "datasetName": "ds_headcount_metrics",
+                  "fields": [
+                    {
+                      "name": "cost_center",
+                      "expression": "`cost_center`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "ds_variance_cc",
+                "query": {
+                  "datasetName": "ds_variance_performance",
+                  "fields": [
+                    {
+                      "name": "cost_center",
+                      "expression": "`cost_center`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "cost_center",
+                    "displayName": "Cost Center",
+                    "queryName": "ds_headcount_cc"
+                  },
+                  {
+                    "fieldName": "cost_center",
+                    "displayName": "Cost Center",
+                    "queryName": "ds_variance_cc"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "COST CENTER"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 1,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    }
+  }
+}
