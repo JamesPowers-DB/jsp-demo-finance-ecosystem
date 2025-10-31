@@ -296,21 +296,6 @@ def create_fpa_budgets():
         ))
     )
 
-    # Calculate percent quarter complete (for display purposes)
-    budgets_df = budgets_df.withColumn(
-        "total_days_in_quarter",
-        F.datediff(F.col("quarter_end_date"), F.col("quarter_start_date")) + 1
-    ).withColumn(
-        "days_elapsed",
-        F.when(
-            F.col("is_current_quarter"),
-            F.datediff(F.col("current_date"), F.col("quarter_start_date")) + 1
-        ).otherwise(F.col("total_days_in_quarter"))
-    ).withColumn(
-        "percent_quarter_complete",
-        F.col("days_elapsed") / F.col("total_days_in_quarter")
-    )
-
     # For past quarters: apply random variance between -0.20 and 0.30 (20% lower to 30% higher)
     # Special case: 2024 Q4 should be 15% lower than actuals
     budgets_df = budgets_df.withColumn(
@@ -339,7 +324,7 @@ def create_fpa_budgets():
     budgets_df = budgets_df.withColumn(
         "budget_amount",
         F.when(
-            F.col("is_current_quarter") & F.col("prev_quarter_budget").isNotNull(),
+            F.col("is_future_quarter") & F.col("prev_quarter_budget").isNotNull(),
             (F.col("prev_quarter_budget") * 1.08).cast(DecimalType(18, 2))
         ).otherwise(F.col("budget_amount_base"))
     )
@@ -392,7 +377,6 @@ def create_fpa_budgets():
         "budget_version",
         "approved_date",
         "currency",
-        "percent_quarter_complete",
         "created_date"
     )
 
