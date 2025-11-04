@@ -4,40 +4,40 @@
       "name": "ds_headcount_metrics",
       "displayName": "Headcount Productivity Metrics",
       "queryLines": [
-        "SELECT ",
-        "  year,",
-        "  quarter,",
-        "  cost_center,",
-        "  legal_entity,",
-        "  MEASURE(quarterly_headcount_cost) AS headcount_cost,",
-        "  MEASURE(quarterly_revenue) AS revenue,",
-        "  MEASURE(revenue_per_employee) AS revenue_per_employee,",
-        "  MEASURE(revenue_per_sales_employee) AS revenue_per_sales,",
-        "  MEASURE(quarterly_spend) AS spend,",
-        "  MEASURE(spend_per_employee) AS spend_per_employee",
-        "FROM main.finance_lakehouse.metric_headcount",
-        "GROUP BY ALL"
+        "SELECT   \n",
+        "  year,  \n",
+        "  quarter,  \n",
+        "  CONCAT('FY',CAST(year AS STRING), 'Q',CAST(quarter AS STRING)) AS fiscal_quarter_name,\n",
+        "  cost_center,  \n",
+        "  legal_entity,  \n",
+        "  MEASURE(quarterly_headcount_cost) AS headcount_cost,  \n",
+        "  MEASURE(quarterly_revenue) AS revenue,  \n",
+        "  MEASURE(revenue_per_employee) AS revenue_per_employee,  \n",
+        "  MEASURE(revenue_per_sales_employee) AS revenue_per_sales,  \n",
+        "  MEASURE(quarterly_spend) AS spend,  \n",
+        "  MEASURE(spend_per_employee) AS spend_per_employee\n",
+        "FROM main.finance_lakehouse.metric_headcount\n",
+        "GROUP BY \n",
+        "all"
       ]
     },
     {
       "name": "ds_variance_performance",
       "displayName": "Variance & Performance Metrics",
       "queryLines": [
-        "SELECT ",
-        "  fiscal_year,",
-        "  fiscal_quarter,",
-        "  quarter_name,",
-        "  cost_center,",
-        "  cost_center_name,",
-        "  legal_entity,",
-        "  legal_entity_name,",
-        "  MEASURE(budget_amount) AS budget,",
-        "  MEASURE(actual_amount) AS actuals,",
-        "  MEASURE(variance_amount) AS variance,",
-        "  MEASURE(variance_percent) AS variance_pct,",
-        "  MEASURE(actual_spend) AS actual_spend,",
-        "  MEASURE(actual_salary) AS actual_salary",
-        "FROM main.finance_lakehouse.metric_variance_performance",
+        "SELECT   \n",
+        "  fiscal_year,  \n",
+        "  fiscal_quarter,  \n",
+        "  fiscal_quarter_name,  \n",
+        "  cost_center,  \n",
+        "  legal_entity,  \n",
+        "  MEASURE(budget_amount) AS budget,  \n",
+        "  MEASURE(actual_amount) AS actuals, \n",
+        "  MEASURE(variance_amount) AS variance,  \n",
+        "  MEASURE(variance_percent) AS variance_pct,  \n",
+        "  MEASURE(actual_spend) AS actual_spend,  \n",
+        "  MEASURE(actual_salary) AS actual_salary\n",
+        "FROM main.finance_lakehouse.metric_planning\n",
         "GROUP BY ALL"
       ]
     },
@@ -45,22 +45,21 @@
       "name": "ds_cash_obligations",
       "displayName": "Cash & Obligations Metrics",
       "queryLines": [
-        "SELECT ",
-        "  invoice_year,",
-        "  invoice_month,",
-        "  invoice_status,",
-        "  supplier,",
-        "  legal_entity,",
-        "  contract_status,",
-        "  agreement_type,",
-        "  MEASURE(total_invoice_amount) AS invoice_amount,",
-        "  MEASURE(amount_paid) AS paid,",
-        "  MEASURE(outstanding_payables) AS outstanding,",
-        "  MEASURE(days_payable_outstanding) AS dpo,",
-        "  MEASURE(total_contracted_value) AS contracted,",
-        "  MEASURE(committed_vs_spent) AS committed_uninvoiced,",
-        "  MEASURE(invoice_count) AS invoice_count",
-        "FROM main.finance_lakehouse.metric_cash_obligations",
+        "SELECT   \n",
+        "  invoice_year,  \n",
+        "  invoice_month,  \n",
+        "  invoice_status, \n",
+        "  supplier,  \n",
+        "  legal_entity,  \n",
+        "  contract_status,  \n",
+        "  agreement_type,  \n",
+        "  MEASURE(total_invoice_amount) AS invoice_amount,  \n",
+        "  MEASURE(amount_paid) AS paid,  \n",
+        "  MEASURE(outstanding_payables) AS outstanding,  \n",
+        "  MEASURE(days_payable_outstanding) AS dpo,  \n",
+        "  MEASURE(total_contracted_value) AS contracted,  \n",
+        "  MEASURE(invoice_count) AS invoice_count\n",
+        "FROM main.finance_lakehouse.metric_cash_obligations\n",
         "GROUP BY ALL"
       ]
     },
@@ -68,23 +67,23 @@
       "name": "ds_revenue_growth",
       "displayName": "Revenue Growth Metrics",
       "queryLines": [
-        "SELECT ",
-        "  revenue_year,",
-        "  revenue_quarter,",
-        "  revenue_month,",
-        "  customer,",
-        "  legal_entity,",
-        "  legal_entity_name,",
-        "  contract_status,",
-        "  agreement_type,",
-        "  MEASURE(recognized_revenue) AS revenue,",
-        "  MEASURE(monthly_recurring_revenue) AS mrr,",
-        "  MEASURE(annual_recurring_revenue) AS arr,",
-        "  MEASURE(billed_amount) AS billed,",
-        "  MEASURE(received_amount) AS received,",
-        "  MEASURE(transaction_count) AS transactions,",
-        "  MEASURE(contract_revenue_at_risk) AS revenue_at_risk",
-        "FROM main.finance_lakehouse.metric_growth_revenue",
+        "SELECT   \n",
+        "  revenue_year,  \n",
+        "  revenue_quarter,  \n",
+        "  revenue_month,  \n",
+        "  customer,  \n",
+        "  legal_entity,  \n",
+        "  legal_entity_name,  \n",
+        "  contract_status,  \n",
+        "  agreement_type,  \n",
+        "  MEASURE(recognized_revenue) AS revenue,  \n",
+        "  MEASURE(monthly_recurring_revenue) AS mrr,  \n",
+        "  MEASURE(annual_recurring_revenue) AS arr,  \n",
+        "  MEASURE(billed_amount) AS billed,  \n",
+        "  MEASURE(received_amount) AS received,  \n",
+        "  MEASURE(transaction_count) AS transactions,  \n",
+        "  MEASURE(contract_revenue_at_risk) AS revenue_at_risk\n",
+        "FROM main.finance_lakehouse.metric_growth_revenue\n",
         "GROUP BY ALL"
       ]
     }
@@ -223,8 +222,8 @@
                   "datasetName": "ds_cash_obligations",
                   "fields": [
                     {
-                      "name": "sum(outstanding)",
-                      "expression": "SUM(`outstanding`)"
+                      "name": "sum(invoice_amount)",
+                      "expression": "SUM(`invoice_amount`)"
                     }
                   ],
                   "disaggregated": false
@@ -236,8 +235,7 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "sum(outstanding)",
-                  "displayName": "Outstanding Payables",
+                  "fieldName": "sum(invoice_amount)",
                   "format": {
                     "type": "number-currency",
                     "currencyCode": "USD",
@@ -250,10 +248,10 @@
                 }
               },
               "frame": {
-                "title": "Outstanding Payables",
+                "title": "Payables",
                 "showTitle": true,
                 "showDescription": true,
-                "description": "Total amount invoiced but not yet paid"
+                "description": "Total amount invoiced "
               }
             }
           },
@@ -291,12 +289,12 @@
                   "datasetName": "ds_variance_performance",
                   "fields": [
                     {
-                      "name": "quarter_name",
-                      "expression": "`quarter_name`"
+                      "name": "legal_entity",
+                      "expression": "`legal_entity`"
                     },
                     {
-                      "name": "legal_entity_name",
-                      "expression": "`legal_entity_name`"
+                      "name": "fiscal_quarter_name",
+                      "expression": "`fiscal_quarter_name`"
                     },
                     {
                       "name": "sum(variance)",
@@ -312,7 +310,7 @@
               "widgetType": "line",
               "encodings": {
                 "x": {
-                  "fieldName": "quarter_name",
+                  "fieldName": "fiscal_quarter_name",
                   "scale": {
                     "type": "categorical"
                   },
@@ -335,7 +333,7 @@
                   "displayName": "Variance ($)"
                 },
                 "color": {
-                  "fieldName": "legal_entity_name",
+                  "fieldName": "legal_entity",
                   "scale": {
                     "type": "categorical"
                   },
@@ -366,16 +364,16 @@
                   "datasetName": "ds_variance_performance",
                   "fields": [
                     {
-                      "name": "cost_center_name",
-                      "expression": "`cost_center_name`"
-                    },
-                    {
                       "name": "sum(budget)",
                       "expression": "SUM(`budget`)"
                     },
                     {
                       "name": "sum(actuals)",
                       "expression": "SUM(`actuals`)"
+                    },
+                    {
+                      "name": "cost_center",
+                      "expression": "`cost_center`"
                     }
                   ],
                   "disaggregated": false
@@ -402,7 +400,7 @@
                   ]
                 },
                 "y": {
-                  "fieldName": "cost_center_name",
+                  "fieldName": "cost_center",
                   "scale": {
                     "type": "categorical",
                     "sort": {
@@ -456,12 +454,8 @@
                   "datasetName": "ds_headcount_metrics",
                   "fields": [
                     {
-                      "name": "year",
-                      "expression": "`year`"
-                    },
-                    {
-                      "name": "quarter",
-                      "expression": "`quarter`"
+                      "name": "fiscal_quarter_name",
+                      "expression": "`fiscal_quarter_name`"
                     },
                     {
                       "name": "avg(revenue_per_employee)",
@@ -472,6 +466,11 @@
                       "expression": "AVG(`revenue_per_sales`)"
                     }
                   ],
+                  "filters": [
+                    {
+                      "expression": "IN_RANGE(`year`, 2024, 2025)"
+                    }
+                  ],
                   "disaggregated": false
                 }
               }
@@ -480,13 +479,6 @@
               "version": 1,
               "widgetType": "combo",
               "encodings": {
-                "x": {
-                  "fieldName": "quarter",
-                  "scale": {
-                    "type": "categorical"
-                  },
-                  "displayName": "Quarter"
-                },
                 "y": {
                   "primary": {
                     "fields": [
@@ -506,7 +498,23 @@
                   },
                   "scale": {
                     "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
                   }
+                },
+                "x": {
+                  "fieldName": "fiscal_quarter_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Quarter"
                 }
               },
               "frame": {
@@ -533,8 +541,8 @@
                   "datasetName": "ds_variance_performance",
                   "fields": [
                     {
-                      "name": "quarter_name",
-                      "expression": "`quarter_name`"
+                      "name": "fiscal_quarter_name",
+                      "expression": "`fiscal_quarter_name`"
                     },
                     {
                       "name": "sum(actual_spend)",
@@ -554,7 +562,7 @@
               "widgetType": "bar",
               "encodings": {
                 "x": {
-                  "fieldName": "quarter_name",
+                  "fieldName": "fiscal_quarter_name",
                   "scale": {
                     "type": "categorical"
                   },
@@ -621,106 +629,6 @@
         },
         {
           "widget": {
-            "name": "kpi_dpo",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_cash_obligations",
-                  "fields": [
-                    {
-                      "name": "avg(dpo)",
-                      "expression": "AVG(`dpo`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "counter",
-              "encodings": {
-                "value": {
-                  "fieldName": "avg(dpo)",
-                  "displayName": "Days Payable Outstanding",
-                  "format": {
-                    "type": "number",
-                    "decimalPlaces": {
-                      "type": "exact",
-                      "places": 1
-                    }
-                  }
-                }
-              },
-              "frame": {
-                "title": "Days Payable Outstanding (DPO)",
-                "showTitle": true,
-                "showDescription": true,
-                "description": "Average days to pay invoices - higher DPO improves working capital"
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 21,
-            "width": 2,
-            "height": 3
-          }
-        },
-        {
-          "widget": {
-            "name": "kpi_committed_uninvoiced",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_cash_obligations",
-                  "fields": [
-                    {
-                      "name": "sum(committed_uninvoiced)",
-                      "expression": "SUM(`committed_uninvoiced`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "counter",
-              "encodings": {
-                "value": {
-                  "fieldName": "sum(committed_uninvoiced)",
-                  "displayName": "Committed Not Invoiced",
-                  "format": {
-                    "type": "number-currency",
-                    "currencyCode": "USD",
-                    "abbreviation": "compact",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 2
-                    }
-                  }
-                }
-              },
-              "frame": {
-                "title": "Committed vs Spent",
-                "showTitle": true,
-                "showDescription": true,
-                "description": "Amount contracted but not yet invoiced - future obligation"
-              }
-            }
-          },
-          "position": {
-            "x": 2,
-            "y": 21,
-            "width": 2,
-            "height": 3
-          }
-        },
-        {
-          "widget": {
             "name": "pie_invoice_status",
             "queries": [
               {
@@ -774,7 +682,7 @@
             "x": 4,
             "y": 21,
             "width": 2,
-            "height": 5
+            "height": 6
           }
         },
         {
@@ -845,7 +753,7 @@
           },
           "position": {
             "x": 0,
-            "y": 24,
+            "y": 21,
             "width": 4,
             "height": 6
           }
@@ -862,111 +770,9 @@
           },
           "position": {
             "x": 0,
-            "y": 30,
+            "y": 27,
             "width": 6,
             "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "kpi_arr",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_revenue_growth",
-                  "fields": [
-                    {
-                      "name": "sum(arr)",
-                      "expression": "SUM(`arr`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "counter",
-              "encodings": {
-                "value": {
-                  "fieldName": "sum(arr)",
-                  "displayName": "Annual Recurring Revenue",
-                  "format": {
-                    "type": "number-currency",
-                    "currencyCode": "USD",
-                    "abbreviation": "compact",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 2
-                    }
-                  }
-                }
-              },
-              "frame": {
-                "title": "Annual Recurring Revenue (ARR)",
-                "showTitle": true,
-                "showDescription": true,
-                "description": "Annualized monthly recurring revenue"
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 32,
-            "width": 2,
-            "height": 3
-          }
-        },
-        {
-          "widget": {
-            "name": "kpi_revenue_at_risk",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_revenue_growth",
-                  "fields": [
-                    {
-                      "name": "sum(revenue_at_risk)",
-                      "expression": "SUM(`revenue_at_risk`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "counter",
-              "encodings": {
-                "value": {
-                  "fieldName": "sum(revenue_at_risk)",
-                  "displayName": "Revenue at Risk",
-                  "format": {
-                    "type": "number-currency",
-                    "currencyCode": "USD",
-                    "abbreviation": "compact",
-                    "decimalPlaces": {
-                      "type": "max",
-                      "places": 2
-                    }
-                  }
-                }
-              },
-              "frame": {
-                "title": "Contract Revenue at Risk",
-                "showTitle": true,
-                "showDescription": true,
-                "description": "Revenue from outbound contracts up for renewal or completed"
-              }
-            }
-          },
-          "position": {
-            "x": 2,
-            "y": 32,
-            "width": 2,
-            "height": 3
           }
         },
         {
@@ -979,16 +785,21 @@
                   "datasetName": "ds_revenue_growth",
                   "fields": [
                     {
-                      "name": "monthly(revenue_month)",
-                      "expression": "DATE_TRUNC(\"MONTH\", `revenue_month`)"
-                    },
-                    {
                       "name": "legal_entity_name",
                       "expression": "`legal_entity_name`"
                     },
                     {
+                      "name": "monthly(revenue_month)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `revenue_month`)"
+                    },
+                    {
                       "name": "sum(revenue)",
                       "expression": "SUM(`revenue`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "IN_RANGE(`revenue_month`, NULL, NULL)"
                     }
                   ],
                   "disaggregated": false
@@ -1039,7 +850,7 @@
           },
           "position": {
             "x": 4,
-            "y": 32,
+            "y": 29,
             "width": 2,
             "height": 5
           }
@@ -1120,7 +931,7 @@
           },
           "position": {
             "x": 0,
-            "y": 35,
+            "y": 29,
             "width": 4,
             "height": 7
           }
@@ -1394,6 +1205,9 @@
   "uiSettings": {
     "theme": {
       "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "genieSpace": {
+      "isEnabled": false
     }
   }
 }

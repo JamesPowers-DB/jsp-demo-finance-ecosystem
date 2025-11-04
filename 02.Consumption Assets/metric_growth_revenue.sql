@@ -161,12 +161,7 @@ measures:
       - transaction volume
 
   - name: contract_revenue_at_risk
-    expr: |
-      CASE
-        WHEN contracts.agreement_type = 'Outbound' AND contracts.contract_status IN ('Active', 'Completed')
-        THEN SUM(rev_recognized_amount)
-        ELSE NULL
-      END
+    expr: SUM(rev_recognized_amount) FILTER (WHERE contracts.agreement_type = 'Outbound' AND contracts.contract_status IN ('Active', 'Completed'))
     comment: "Revenue from outbound contracts that are active or completed (shows revenue up for renewal)"
     display_name: "Contract Revenue at Risk"
     format:

@@ -196,6 +196,49 @@ def load_stg_commit_revenue():
 
 
 @dp.table(
+    name=f"fact_spend_transactions",
+    comment="Staging table joining purchase orders and spend invoices"
+)
+def stg_spend_transactions():
+    return spark.sql(f"""
+        SELECT
+            purchase_order_id
+            ,contract_id
+            ,purchase_order_number
+            ,DATE(FROM_UNIXTIME(purchase_order_date)) AS purchase_order_date
+            ,purchase_order_status
+            ,third_party_id
+            ,supplier_id
+            ,supplier_name
+            ,purchase_order_currency
+            ,purchase_order_amount
+            ,total_purchase_order_value
+            ,coa_meta
+            ,invoice_id
+            ,invoice_number
+            ,DATE(FROM_UNIXTIME(invoice_date)) AS invoice_date
+            ,invoice_status
+            ,invoice_amount
+            ,tax_amount
+            ,discount_amount
+            ,total_invoice_amount
+            ,amount_paid
+            ,DATE(FROM_UNIXTIME(payment_due_date)) AS payment_due_date
+            ,invoice_category
+            ,DATE(FROM_UNIXTIME(payment_date)) AS payment_date
+            ,payment_method
+            ,payment_reference
+            ,receipt_matched
+            ,three_way_match_status
+            ,DATE(FROM_UNIXTIME(goods_received_date)) AS goods_received_date
+            ,invoice_year
+            ,invoice_month
+
+        FROM stg_spend_transactions
+    """)
+
+
+@dp.table(
     name=f"fact_spend_recognition",
     comment="Joins monthly stg_commit_spend with stg_spend_transactions aggregated by transaction month."
 )

@@ -96,12 +96,7 @@ measures:
       - revenue per headcount
 
   - name: revenue_per_sales_employee
-    expr: |
-      CASE
-        WHEN cost_center_id = 1002
-        THEN SUM(revenue.rev_recognized_amount) / NULLIF(SUM(agg_qtr_salary), 0) * 100000
-        ELSE NULL
-      END
+    expr: SUM(revenue.rev_recognized_amount) / NULLIF(SUM(agg_qtr_salary) FILTER (WHERE source.cost_center_id = 1002), 0) * 100000
     comment: "Quarterly revenue per $100K of sales department employee cost (cost center 1002)"
     display_name: "Revenue per $100K Sales Employee Cost"
     format:
