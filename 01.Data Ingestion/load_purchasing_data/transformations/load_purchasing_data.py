@@ -197,7 +197,7 @@ def load_stg_commit_revenue():
 
 @dp.table(
     name=f"fact_spend_transactions",
-    comment="Staging table joining purchase orders and spend invoices"
+    comment="Fact table joining purchase orders and spend invoices"
 )
 def stg_spend_transactions():
     return spark.sql(f"""
@@ -289,4 +289,71 @@ def fact_revenue_recognition():
             AND commit.legal_entity_id = spend_trx.legal_entity_id 
         """)
     return query
+
+
+
+@dp.table(
+    name=f"fact_supplier_scorecard",
+    comment="Aggregates spend transactions by supplier."
+)
+def stg_spend_transactions():
+    return spark.sql(f"""
+        WITH benchmarks AS (
+            SELECT
+                 AVG(DATE_DIFF(DAY, purchase_order_date, goods_received_date)) AS bench_po_to_gr
+                ,AVG(DATE_DIFF(DAY, purchase_order_date, invoice_date)) AS bench_po_to_invoice
+                ,AVG(DATE_DIFF(DAY, invoice_date, payment_date)) AS bench_invoice_to_payment
+                ,AVG(DATE_DIFF(DAY, payment_due_date, payment_date)) AS bench_due_date_to_payment
+                ,MIN(DATE_DIFF(DAY, purchase_order_date, goods_received_date)) AS min_po_to_gr
+                ,MIN(DATE_DIFF(DAY, purchase_order_date, invoice_date)) AS min_po_to_invoice
+                ,MIN(DATE_DIFF(DAY, invoice_date, payment_date)) AS min_invoice_to_payment
+                ,MIN(DATE_DIFF(DAY, payment_due_date, payment_date)) AS min_due_date_to_payment
+                ,MAX(DATE_DIFF(DAY, purchase_order_date, goods_received_date)) AS max_po_to_gr
+                ,MAX(DATE_DIFF(DAY, purchase_order_date, invoice_date)) AS max_po_to_invoice
+                ,MAX(DATE_DIFF(DAY, invoice_date, payment_date)) AS max_invoice_to_payment
+                ,MAX(DATE_DIFF(DAY, payment_due_date, payment_date)) AS max_due_date_to_payment
+                ,COUNT(purchase_order_id) FILTER (WHERE DATE(payment_date) <= DATE(payment_due_date))
+                    / COUNT(purchase_order_id) AS bench_on_time_payment
+            FROM fact_spend_transactions
+        )
+        SELECT
+            third_party_id
+            ,supplier_id
+            ,supplier_name
+            ,COUNT(purchase_order_id) AS transaction_count
+            ,AVG(DATE_DIFF(DAY, purchase_order_date, goods_received_date)) AS po_to_gr
+            ,AVG(DATE_DIFF(DAY, purchase_order_date, invoice_date)) AS po_to_invoice
+            ,AVG(DATE_DIFF(DAY, invoice_date, payment_date)) AS invoice_to_payment
+            ,AVG(DATE_DIFF(DAY, payment_due_date, payment_date)) AS due_date_to_payment
+            ,COUNT(purchase_order_id) FILTER (WHERE DATE(payment_date) <= DATE(payment_due_date)) / COUNT(purchase_order_id) AS on_time_payment
+            /* 
+            Somebody good at building feature tables look at this and roast me 
+            > anything `1 - x` implies that lower is better
+            */
+            ,1 - (AVG(DATE_DIFF(DAY, purchase_order_date, goods_received_date)) - min_po_to_gr) / (max_po_to_gr - min_po_to_gr) AS po_to_gr_score 
+            ,(AVG(DATE_DIFF(DAY, purchase_order_date, invoice_date)) - min_po_to_invoice) / (max_po_to_invoice - min_po_to_invoice) AS po_to_invoice_score
+            ,(AVG(DATE_DIFF(DAY, invoice_date, payment_date)) - min_invoice_to_payment) / (max_invoice_to_payment - min_invoice_to_payment) AS invoice_to_payment_score
+            ,1 - (AVG(DATE_DIFF(DAY, payment_due_date, payment_date)) - min_due_date_to_payment) / (max_due_date_to_payment - min_due_date_to_payment) AS due_date_to_payment_score
+            ,COUNT(purchase_order_id) FILTER (WHERE DATE(payment_date) <= DATE(payment_due_date)) / COUNT(purchase_order_id) AS on_time_payment_score
+    
+        FROM fact_spend_transactions
+        CROSS JOIN benchmarks
+        GROUP BY
+            third_party_id
+            ,supplier_id
+            ,supplier_name
+            ,bench_po_to_gr
+            ,bench_po_to_invoice
+            ,bench_invoice_to_payment
+            ,bench_due_date_to_payment
+            ,bench_on_time_payment
+            ,min_po_to_gr
+            ,min_po_to_invoice
+            ,min_invoice_to_payment
+            ,min_due_date_to_payment
+            ,max_po_to_gr
+            ,max_po_to_invoice
+            ,max_invoice_to_payment
+            ,max_due_date_to_payment 
+    """)
 
