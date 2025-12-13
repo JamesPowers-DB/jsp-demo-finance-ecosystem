@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income Statement Decomposition Visual</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1B3139;
+            color: #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 24px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            color: #f8fafc;
+            text-transform: uppercase;
+        }
+
+        .frame {
+            display: none;
+        }
+
+        .frame.active {
+            display: block;
+        }
+
+        .narrative {
+            text-align: center;
+            margin: 15px auto 25px;
+            max-width: 900px;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .canvas {
+            width: 1200px;
+            height: 800px;
+            margin: 0 auto;
+            background: #0B2026;
+            border: 1px solid #143D4A;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        .treemap-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            position: relative;
+        }
+
+        .box {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            position: absolute;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+
+        .box-content {
+            text-align: center;
+            z-index: 1;
+            position: relative;
+            max-width: 95%;
+            overflow: hidden;
+        }
+
+        .box-label {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 6px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            letter-spacing: 0.3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        .box-value {
+            font-size: 15px;
+            font-weight: 700;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            font-variant-numeric: tabular-nums;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .box-percent {
+            font-size: 10px;
+            margin-top: 4px;
+            opacity: 0.75;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .box.large .box-label {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .box.large .box-value {
+            font-size: 26px;
+        }
+
+        .box.large .box-percent {
+            font-size: 11px;
+        }
+
+        .box.medium .box-label {
+            font-size: 15px;
+        }
+
+        .box.medium .box-value {
+            font-size: 19px;
+        }
+
+        .box.small .box-label {
+            font-size: 11px;
+        }
+
+        .box.small .box-value {
+            font-size: 13px;
+        }
+
+        .box.small .box-percent {
+            font-size: 9px;
+        }
+
+        .box.extra-small .box-label {
+            font-size: 10px;
+            margin-bottom: 3px;
+        }
+
+        .box.extra-small .box-value {
+            font-size: 11px;
+        }
+
+        .box.extra-small .box-percent {
+            display: none; /* Hide percentage for extra small boxes */
+        }
+
+        .box.tiny .box-label {
+            font-size: 9px;
+            margin-bottom: 2px;
+        }
+
+        .box.tiny .box-value {
+            font-size: 10px;
+        }
+
+        .box.tiny .box-percent {
+            display: none;
+        }
+
+        .cloud-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .cloud-label {
+            background: rgba(0, 0, 0, 0.85);
+            color: #e5e7eb;
+            padding: 6px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            max-width: 80%;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 35px;
+            color: #94a3b8;
+        }
+
+        .progress {
+            font-size: 16px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #cbd5e1;
+            letter-spacing: 0.5px;
+        }
+
+        .instructions {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .nested-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .horizontal {
+            flex-direction: row;
+        }
+
+        .vertical {
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Income Statement Decomposition</h1>
+
+        <div id="frame1" class="frame active">
+            <div class="narrative">"This is what gets published. One number. The company made $50M."</div>
+            <div class="canvas" id="canvas1"></div>
+        </div>
+
+        <div id="frame2" class="frame">
+            <div class="narrative">"Now we ask why. Net income is revenue minus costs. Here's the first decomposition."</div>
+            <div class="canvas" id="canvas2"></div>
+        </div>
+
+        <div id="frame3" class="frame">
+            <div class="narrative">"Analysts dig in. Revenue comes from three streams. Costs break into categories. We're starting to see what's really happening."</div>
+            <div class="canvas" id="canvas3"></div>
+        </div>
+
+        <div id="frame4" class="frame">
+            <div class="narrative">"Here's where it breaks down. Some areas we can drill intoour ERP handles product revenue by line. But services? The system doesn't break it out. Labor costs? That's in a different system entirely. The visibility stops."</div>
+            <div class="canvas" id="canvas4"></div>
+        </div>
+
+        <div id="frame5" class="frame">
+            <div class="narrative">"With Databricks, the walls come down. We connect the HR system, the CRM, the billing platform. Now we can see that Services revenue is actually healthyit's training that's lagging. Subscription churn is concentrated in SMB. Labor overruns are driven by overtime, not headcount. You can keep drilling until you find the answer."</div>
+            <div class="canvas" id="canvas5"></div>
+        </div>
+
+        <div class="controls">
+            <div class="progress" id="progress">Frame 1 of 5</div>
+            <div class="instructions">Use SPACE or � to advance | � to go back</div>
+        </div>
+    </div>
+
+    <script>
+        let currentFrame = 0;
+        const totalFrames = 5;
+
+        // Data structures for each frame
+        const frameData = {
+            1: {
+                label: "Net Income",
+                value: 50,
+                children: []
+            },
+            2: {
+                label: "Net Income",
+                value: 50,
+                children: [
+                    { label: "Revenue", value: 500, children: [] },
+                    { label: "Cost of Goods Sold", value: -300, children: [] },
+                    { label: "Operating Expenses", value: -120, children: [] },
+                    { label: "Interest & Taxes", value: -30, children: [] }
+                ]
+            },
+            3: {
+                label: "Net Income",
+                value: 50,
+                children: [
+                    {
+                        label: "Revenue",
+                        value: 500,
+                        children: [
+                            { label: "Product Revenue", value: 350, children: [] },
+                            { label: "Services Revenue", value: 100, children: [] },
+                            { label: "Subscription Revenue", value: 50, children: [] }
+                        ]
+                    },
+                    {
+                        label: "Cost of Goods Sold",
+                        value: -300,
+                        children: [
+                            { label: "Materials", value: -150, children: [] },
+                            { label: "Labor", value: -100, children: [] },
+                            { label: "Overhead", value: -50, children: [] }
+                        ]
+                    },
+                    {
+                        label: "Operating Expenses",
+                        value: -120,
+                        children: [
+                            { label: "Sales & Marketing", value: -60, children: [] },
+                            { label: "R&D", value: -40, children: [] },
+                            { label: "G&A", value: -20, children: [] }
+                        ]
+                    },
+                    {
+                        label: "Interest & Taxes",
+                        value: -30,
+                        children: [
+                            { label: "Interest Expense", value: -10, children: [] },
+                            { label: "Tax Expense", value: -20, children: [] }
+                        ]
+                    }
+                ]
+            },
+            4: {
+                label: "Net Income",
+                value: 50,
+                children: [
+                    {
+                        label: "Revenue",
+                        value: 500,
+                        children: [
+                            {
+                                label: "Product Revenue",
+                                value: 350,
+                                children: [
+                                    { label: "Product Line A", value: 200, children: [] },
+                                    { label: "Product Line B", value: 100, children: [] },
+                                    { label: "Product Line C", value: 50, children: [] }
+                                ]
+                            },
+                            { label: "Services Revenue", value: 100, children: [], clouded: "ERP limit" },
+                            { label: "Subscription Revenue", value: 50, children: [], clouded: "No data linkage" }
+                        ]
+                    },
+                    {
+                        label: "Cost of Goods Sold",
+                        value: -300,
+                        children: [
+                            {
+                                label: "Materials",
+                                value: -150,
+                                children: [
+                                    { label: "Supplier X", value: -80, children: [] },
+                                    { label: "Supplier Y", value: -50, children: [] },
+                                    { label: "Supplier Z", value: -20, children: [] }
+                                ]
+                            },
+                            { label: "Labor", value: -100, children: [], clouded: "HR system disconnected" },
+                            { label: "Overhead", value: -50, children: [], clouded: "Data unavailable" }
+                        ]
+                    },
+                    {
+                        label: "Operating Expenses",
+                        value: -120,
+                        children: [
+                            { label: "Sales & Marketing", value: -60, children: [], clouded: "System limit" },
+                            { label: "R&D", value: -40, children: [], clouded: "System limit" },
+                            { label: "G&A", value: -20, children: [], clouded: "System limit" }
+                        ]
+                    },
+                    {
+                        label: "Interest & Taxes",
+                        value: -30,
+                        children: [
+                            { label: "Interest Expense", value: -10, children: [], clouded: "System limit" },
+                            { label: "Tax Expense", value: -20, children: [], clouded: "System limit" }
+                        ]
+                    }
+                ]
+            },
+            5: {
+                label: "Net Income",
+                value: 50,
+                children: [
+                    {
+                        label: "Revenue",
+                        value: 500,
+                        children: [
+                            {
+                                label: "Product Revenue",
+                                value: 350,
+                                children: [
+                                    { label: "Product Line A", value: 200, children: [] },
+                                    { label: "Product Line B", value: 100, children: [] },
+                                    {
+                                        label: "Product Line C",
+                                        value: 50,
+                                        children: [
+                                            { label: "North America", value: 30, children: [] },
+                                            { label: "EMEA", value: 15, children: [] },
+                                            { label: "APAC", value: 5, children: [] }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                label: "Services Revenue",
+                                value: 100,
+                                children: [
+                                    { label: "Implementation", value: 60, children: [] },
+                                    { label: "Support Contracts", value: 30, children: [] },
+                                    { label: "Training", value: 10, children: [] }
+                                ]
+                            },
+                            {
+                                label: "Subscription Revenue",
+                                value: 50,
+                                children: [
+                                    { label: "Enterprise Tier", value: 35, children: [] },
+                                    { label: "SMB Tier", value: 15, children: [] }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        label: "Cost of Goods Sold",
+                        value: -300,
+                        children: [
+                            {
+                                label: "Materials",
+                                value: -150,
+                                children: [
+                                    { label: "Supplier X", value: -80, children: [] },
+                                    { label: "Supplier Y", value: -50, children: [] },
+                                    { label: "Supplier Z", value: -20, children: [] }
+                                ]
+                            },
+                            {
+                                label: "Labor",
+                                value: -100,
+                                children: [
+                                    { label: "Manufacturing", value: -60, children: [] },
+                                    { label: "Warehouse", value: -25, children: [] },
+                                    { label: "Overtime Premium", value: -15, children: [] }
+                                ]
+                            },
+                            { label: "Overhead", value: -50, children: [] }
+                        ]
+                    },
+                    {
+                        label: "Operating Expenses",
+                        value: -120,
+                        children: [
+                            { label: "Sales & Marketing", value: -60, children: [] },
+                            { label: "R&D", value: -40, children: [] },
+                            { label: "G&A", value: -20, children: [] }
+                        ]
+                    },
+                    {
+                        label: "Interest & Taxes",
+                        value: -30,
+                        children: [
+                            { label: "Interest Expense", value: -10, children: [] },
+                            { label: "Tax Expense", value: -20, children: [] }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // Color calculation functions - FinViz style gradient
+        function getColor(value, parentValue) {
+            if (value === 0) return '#64748b'; // Gray for neutral
+
+            // Calculate percentage of parent (clamped between 0-100%)
+            const percentage = parentValue ? (Math.abs(value) / parentValue) * 100 : 50;
+
+            // Create intensity scale: normalize to 0-1 range
+            // Use a curved scale for better visual distribution
+            const intensity = Math.min(percentage / 100, 1);
+            const scaledIntensity = Math.pow(intensity, 0.6); // Slightly curve the scale
+
+            if (value > 0) {
+                // Positive: gradient from light blue to dark green
+                // Light blue -> Medium blue -> Blue-green -> Green
+                return interpolatePositiveColor(scaledIntensity);
+            } else {
+                // Negative: gradient from light red to dark red
+                return interpolateNegativeColor(scaledIntensity);
+            }
+        }
+
+        function interpolatePositiveColor(intensity) {
+            // Databricks Blue gradient: light blue -> medium blue -> deep blue
+            const colors = [
+                { r: 186, g: 225, b: 252 },  // Blue 300 (low intensity)
+                { r: 138, g: 202, b: 255 },  // Blue 400
+                { r: 66,  g: 153, b: 224 },  // Blue 500
+                { r: 34,  g: 114, b: 180 },  // Blue 600
+                { r: 14,  g: 83,  b: 139 },  // Blue 700
+                { r: 4,   g: 53,  b: 93  }   // Blue 800 (high intensity)
+            ];
+
+            return interpolateColorScale(colors, intensity);
+        }
+
+        function interpolateNegativeColor(intensity) {
+            // Databricks Lava/Red gradient: light -> dark
+            const colors = [
+                { r: 250, g: 191, b: 186 },  // Lava 300 (low intensity)
+                { r: 255, g: 158, b: 148 },  // Lava 400
+                { r: 255, g: 95,  b: 70  },  // Lava 500
+                { r: 255, g: 54,  b: 33  },  // Lava 600 (Primary)
+                { r: 189, g: 43,  b: 38  },  // Lava 700
+                { r: 128, g: 28,  b: 23  }   // Lava 800 (high intensity)
+            ];
+
+            return interpolateColorScale(colors, intensity);
+        }
+
+
+        
+  
+  
+
+
+
+        
+
+
+        function interpolateColorScale(colors, intensity) {
+            const scaledValue = intensity * (colors.length - 1);
+            const index = Math.floor(scaledValue);
+            const fraction = scaledValue - index;
+
+            if (index >= colors.length - 1) {
+                const c = colors[colors.length - 1];
+                return `rgb(${c.r}, ${c.g}, ${c.b})`;
+            }
+
+            const color1 = colors[index];
+            const color2 = colors[index + 1];
+
+            const r = Math.round(color1.r + (color2.r - color1.r) * fraction);
+            const g = Math.round(color1.g + (color2.g - color1.g) * fraction);
+            const b = Math.round(color1.b + (color2.b - color1.b) * fraction);
+
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function blendColors(children) {
+            // Calculate weighted average color based on children
+            const allPositive = children.every(c => c.value > 0);
+            const allNegative = children.every(c => c.value < 0);
+
+            if (allPositive) {
+                // Average the positive values
+                const total = children.reduce((sum, c) => sum + Math.abs(c.value), 0);
+                const avgValue = total / children.length;
+                return getColor(avgValue, total);
+            }
+
+            if (allNegative) {
+                // Average the negative values
+                const total = children.reduce((sum, c) => sum + Math.abs(c.value), 0);
+                const avgValue = total / children.length;
+                return getColor(-avgValue, total);
+            }
+
+            // Mixed - use purple gradient based on ratio
+            const positiveSum = children.filter(c => c.value > 0).reduce((sum, c) => sum + c.value, 0);
+            const negativeSum = Math.abs(children.filter(c => c.value < 0).reduce((sum, c) => sum + c.value, 0));
+            const total = positiveSum + negativeSum;
+
+            if (total === 0) return '#64748b';
+
+            const positiveRatio = positiveSum / total;
+
+            // Databricks purple/neutral gradient from red (negative) to blue (positive)
+            // Blends through neutral purples instead of brown/rust
+            const mixedGradient = [
+                { r: 128, g: 28,  b: 23  },  // Lava 800 (0% positive - all negative)
+                { r: 152, g: 16,  b: 42  },  // Maroon 600
+                { r: 115, g: 13,  b: 33  },  // Maroon 700
+                { r: 90,  g: 40,  b: 60  },  // Purple-red blend
+                { r: 80,  g: 60,  b: 90  },  // Purple (50% - balanced)
+                { r: 70,  g: 80,  b: 120 },  // Purple-blue blend
+                { r: 50,  g: 100, b: 150 },  // Blue-purple
+                { r: 34,  g: 114, b: 180 },  // Blue 600
+                { r: 14,  g: 83,  b: 139 },  // Blue 700
+                { r: 4,   g: 53,  b: 93  }   // Blue 800 (100% positive)
+            ];
+
+            // Interpolate based on positive ratio
+            const scaledValue = positiveRatio * (mixedGradient.length - 1);
+            const index = Math.floor(scaledValue);
+            const fraction = scaledValue - index;
+
+            if (index >= mixedGradient.length - 1) {
+                const c = mixedGradient[mixedGradient.length - 1];
+                return `rgb(${c.r}, ${c.g}, ${c.b})`;
+            }
+
+            const color1 = mixedGradient[index];
+            const color2 = mixedGradient[index + 1];
+
+            const r = Math.round(color1.r + (color2.r - color1.r) * fraction);
+            const g = Math.round(color1.g + (color2.g - color1.g) * fraction);
+            const b = Math.round(color1.b + (color2.b - color1.b) * fraction);
+
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function formatValue(value) {
+            const abs = Math.abs(value);
+            return (value < 0 ? '-' : '') + '$' + abs + 'M';
+        }
+
+        function getSizeClass(area) {
+            if (area > 200000) return 'large';
+            if (area > 50000) return 'medium';
+            if (area > 20000) return 'small';
+            if (area > 8000) return 'extra-small';
+            return 'tiny';
+        }
+
+        function abbreviateLabel(label, sizeClass) {
+            // Don't abbreviate for large or medium boxes
+            if (sizeClass === 'large' || sizeClass === 'medium') {
+                return label;
+            }
+
+            // Common abbreviations
+            const abbreviations = {
+                'Revenue': 'Rev',
+                'Product Revenue': 'Product',
+                'Services Revenue': 'Services',
+                'Subscription Revenue': 'Subscript.',
+                'Cost of Goods Sold': 'COGS',
+                'Operating Expenses': 'OpEx',
+                'Sales & Marketing': 'S&M',
+                'Interest & Taxes': 'Int & Tax',
+                'Interest Expense': 'Interest',
+                'Tax Expense': 'Tax',
+                'Product Line A': 'Line A',
+                'Product Line B': 'Line B',
+                'Product Line C': 'Line C',
+                'Implementation': 'Impl',
+                'Support Contracts': 'Support',
+                'Enterprise Tier': 'Enterprise',
+                'Manufacturing': 'Mfg',
+                'Warehouse': 'Warehouse',
+                'Overtime Premium': 'Overtime',
+                'North America': 'N. Amer',
+                'Materials': 'Materials',
+                'Overhead': 'Overhead'
+            };
+
+            // For tiny boxes, use even shorter abbreviations
+            if (sizeClass === 'tiny') {
+                const tinyAbbr = {
+                    'Revenue': 'Rev',
+                    'Product Revenue': 'Prod',
+                    'Services Revenue': 'Svc',
+                    'Subscription Revenue': 'Sub',
+                    'Cost of Goods Sold': 'COGS',
+                    'Operating Expenses': 'OpEx',
+                    'Sales & Marketing': 'S&M',
+                    'Interest & Taxes': 'I&T',
+                    'Interest Expense': 'Int',
+                    'Tax Expense': 'Tax',
+                    'Product Line A': 'A',
+                    'Product Line B': 'B',
+                    'Product Line C': 'C'
+                };
+                return tinyAbbr[label] || abbreviations[label] || label;
+            }
+
+            return abbreviations[label] || label;
+        }
+
+        // D3 Treemap rendering algorithm
+        function renderTreemap(data, container, width, height) {
+            container.innerHTML = '';
+
+            // Create hierarchy from data
+            const hierarchy = d3.hierarchy(data)
+                .sum(d => Math.abs(d.value))
+                .sort((a, b) => b.value - a.value);
+
+            // Create treemap layout with minimal padding for tighter layout
+            const treemap = d3.treemap()
+                .size([width, height])
+                .paddingInner(0.5)
+                .paddingOuter(0)
+                .paddingTop(20)  // Space for parent group labels
+                .round(true);
+
+            // Apply layout
+            treemap(hierarchy);
+
+            // Render parent labels first (as guides)
+            hierarchy.descendants().filter(d => d.children && d.depth > 0).forEach(node => {
+                const label = document.createElement('div');
+                label.style.position = 'absolute';
+                label.style.left = node.x0 + 'px';
+                label.style.top = (node.y0 + 2) + 'px';
+                label.style.fontSize = '11px';
+                label.style.fontWeight = '600';
+                label.style.color = 'rgba(255, 255, 255, 0.5)';
+                label.style.zIndex = '100';
+                label.style.pointerEvents = 'none';
+                label.textContent = node.data.label;
+                container.appendChild(label);
+            });
+
+            // Render only leaf nodes
+            hierarchy.leaves().forEach(node => {
+                const box = createBox(node, node.parent);
+                container.appendChild(box);
+            });
+        }
+
+        function createBox(node, parentNode) {
+            const box = document.createElement('div');
+            const data = node.data;
+
+            // Calculate dimensions
+            const nodeWidth = node.x1 - node.x0;
+            const nodeHeight = node.y1 - node.y0;
+            const area = nodeWidth * nodeHeight;
+            const sizeClass = getSizeClass(area);
+
+            box.className = 'box ' + sizeClass;
+
+            // Colored leaf nodes
+            const color = getColor(data.value, parentNode ? Math.abs(parentNode.data.value) : null);
+            box.style.backgroundColor = color;
+            box.style.left = node.x0 + 'px';
+            box.style.top = node.y0 + 'px';
+            box.style.width = nodeWidth + 'px';
+            box.style.height = nodeHeight + 'px';
+
+            // Add content for leaf nodes
+            {
+                const content = document.createElement('div');
+                content.className = 'box-content';
+
+                const label = document.createElement('div');
+                label.className = 'box-label';
+                label.textContent = abbreviateLabel(data.label, sizeClass);
+
+                const valueDiv = document.createElement('div');
+                valueDiv.className = 'box-value';
+                valueDiv.textContent = formatValue(data.value);
+
+                content.appendChild(label);
+                content.appendChild(valueDiv);
+
+                // Add percentage if has parent
+                if (parentNode && parentNode.data.value) {
+                    const percent = document.createElement('div');
+                    percent.className = 'box-percent';
+                    const percentValue = Math.round((Math.abs(data.value) / Math.abs(parentNode.data.value)) * 100);
+                    percent.textContent = percentValue + '%';
+                    content.appendChild(percent);
+                }
+
+                box.appendChild(content);
+            }
+
+            // Add cloud overlay if specified
+            if (data.clouded) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud-overlay';
+
+                const cloudLabel = document.createElement('div');
+                cloudLabel.className = 'cloud-label';
+                cloudLabel.textContent = data.clouded;
+
+                cloud.appendChild(cloudLabel);
+                box.appendChild(cloud);
+            }
+
+            return box;
+        }
+
+        // Navigation functions
+        function showFrame(index) {
+            document.querySelectorAll('.frame').forEach(frame => {
+                frame.classList.remove('active');
+            });
+
+            document.getElementById('frame' + (index + 1)).classList.add('active');
+            document.getElementById('progress').textContent = `Frame ${index + 1} of ${totalFrames}`;
+
+            // Render the treemap for this frame
+            const canvas = document.getElementById('canvas' + (index + 1));
+            renderTreemap(frameData[index + 1], canvas, 1200, 800);
+        }
+
+        function nextFrame() {
+            if (currentFrame < totalFrames - 1) {
+                currentFrame++;
+                showFrame(currentFrame);
+            }
+        }
+
+        function previousFrame() {
+            if (currentFrame > 0) {
+                currentFrame--;
+                showFrame(currentFrame);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowRight') {
+                e.preventDefault();
+                nextFrame();
+            } else if (e.code === 'ArrowLeft') {
+                e.preventDefault();
+                previousFrame();
+            }
+        });
+
+        // Initialize first frame
+        showFrame(0);
+    </script>
+</body>
+</html>
