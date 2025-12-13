@@ -1,0 +1,105 @@
+/* Databricks Brand Guidelines - Colors and Typography */
+
+/* Import DM Sans font family */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Primary Colors */
+  --lava-600: #FF3621;
+  --navy-800: #1B3139;
+  --oat-medium: #EEEDE9;
+  --oat-light: #F9F7F4;
+  --white: #FFFFFF;
+
+  /* Maroon Series */
+  --maroon-800: #4A121A;
+  --maroon-700: #730D21;
+  --maroon-600: #98102A;
+  --maroon-500: #AB4057;
+  --maroon-400: #BF7080;
+  --maroon-300: #D69EA8;
+
+  /* Lava Series */
+  --lava-800: #801C17;
+  --lava-700: #BD2B26;
+  --lava-500: #FF5F46;
+  --lava-400: #FF9E94;
+  --lava-300: #FABFBA;
+
+  /* Yellow Series */
+  --yellow-800: #7D5319;
+  --yellow-700: #BA7B23;
+  --yellow-600: #FFAB00;
+  --yellow-500: #FCBA33;
+  --yellow-400: #FFCC66;
+  --yellow-300: #FFDB96;
+
+  /* Green Series */
+  --green-800: #095A35;
+  --green-700: #00875C;
+  --green-600: #00A972;
+  --green-500: #42BA91;
+  --green-400: #70C4AB;
+  --green-300: #9ED6C4;
+
+  /* Blue Series */
+  --blue-800: #04355D;
+  --blue-700: #0E538B;
+  --blue-600: #2272B4;
+  --blue-500: #4299E0;
+  --blue-400: #8ACAFF;
+  --blue-300: #BAE1FC;
+
+  /* Navy Series */
+  --navy-900: #0B2026;
+  --navy-700: #143D4A;
+  --navy-600: #1B5162;
+  --navy-500: #618794;
+  --navy-400: #90A5B1;
+  --navy-300: #C4CCD6;
+
+  /* Utility Colors */
+  --gray-nav: #303F47;
+  --gray-text: #5A6F77;
+  --gray-lines: #DCE0E2;
+
+  /* Typography */
+  --font-primary: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* Type Scale */
+  --font-size-h1: 24px;
+  --font-size-h2: 22px;
+  --font-size-h3: 20px;
+  --font-size-h4: 18px;
+  --font-size-h5: 16px;
+  --font-size-h6: 14px;
+  --font-size-body: 14px;
+}
+
+/* Typography Styles */
+body {
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-normal);
+  color: var(--gray-text);
+  background-color: var(--oat-light);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-weight-medium);
+  color: var(--navy-800);
+}
+
+h1 { font-size: var(--font-size-h1); }
+h2 { font-size: var(--font-size-h2); }
+h3 { font-size: var(--font-size-h3); }
+h4 { font-size: var(--font-size-h4); }
+h5 { font-size: var(--font-size-h5); }
+h6 { font-size: var(--font-size-h6); }
+
+code, pre {
+  font-family: var(--font-mono);
+}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Treemap - Databricks</title>
+    <link rel="stylesheet" href="static/databricks_branding.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .navigation-info {
+            font-size: 14px;
+            color: var(--gray-text);
+            margin-bottom: 10px;
+        }
+
+        .level-indicator {
+            font-size: 16px;
+            font-weight: var(--font-weight-medium);
+            color: var(--navy-800);
+            margin-bottom: 20px;
+        }
+
+        #treemap-container {
+            position: relative;
+            width: 1154px;
+            height: 1154px;
+            background-color: var(--white);
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(27, 49, 57, 0.1);
+        }
+
+        svg {
+            border-radius: 4px;
+        }
+
+        .node {
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .node:hover {
+            opacity: 0.8;
+        }
+
+        .node-label {
+            font-family: var(--font-primary);
+            font-size: 12px;
+            font-weight: var(--font-weight-medium);
+            fill: var(--navy-800);
+            pointer-events: none;
+        }
+
+        .node-value {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            fill: var(--gray-text);
+            pointer-events: none;
+        }
+
+        .clouded {
+            opacity: 0.5;
+            position: relative;
+        }
+
+        .clouded-indicator {
+            font-size: 10px;
+            font-style: italic;
+            fill: var(--gray-text);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Net Income Breakdown</h1>
+        <div class="navigation-info">Use ê í arrow keys to navigate between levels</div>
+        <div class="level-indicator" id="level-indicator">Level 1 of 5</div>
+    </div>
+
+    <div id="treemap-container"></div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="static/treemap.js"></script>
+</body>
+</html>
