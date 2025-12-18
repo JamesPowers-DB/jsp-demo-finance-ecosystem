@@ -149,6 +149,19 @@ measures:
       - variance pct
       - variance percentage
       - bva percent
+      
+  - name: forecast_accuracy
+    expr: forecast_amount / actual_amount
+    comment: Forecast proximity to actual spend
+    display_name: Forecast Accuracy
+    format:
+      type: percentage
+      decimal_places:
+        type: exact
+        places: 2
+      hide_group_separator: false
+    synonyms:
+      - forecast accuracy
 
   - name: actual_spend
     expr: SUM(actuals.spend_amount)
